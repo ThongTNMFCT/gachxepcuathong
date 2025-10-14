@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gác xép của Thông</title>
+
+    <!-- Meta Tags cho việc chia sẻ (Open Graph) -->
+    <meta property="og:title" content="Gác xép của Thông">
+    <meta property="og:description" content="Nơi Thông lưu giữ những mẩu chuyện nhỏ xinh, những suy tư vụn vặt và cả những hành trình đáng nhớ.">
+    <meta property="og:image" content="https://i.ibb.co/7jXgTzD/gacxep-cover-share.png">
+    <meta property="og:type" content="website">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -150,15 +156,17 @@
         
         // --- Authentication Listener ---
         onAuthStateChanged(auth, (user) => {
+            const adminEmail = 'thongtnmfct31178@gmail.com'; // Admin email
             const updateAuthUI = (container) => {
                 container.innerHTML = ''; // Clear old content
                 if (user) {
                     const displayName = user.displayName || user.email.split('@')[0];
-                    container.innerHTML = `
+                    // Hiển thị Chào mừng và Đăng xuất cho tất cả user đăng nhập
+                    let html = `
                         <span class="font-semibold text-amber-800">Chào, ${displayName}!</span>
-                        <a href="admin.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Quản trị</a>
                         <button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>
                     `;
+                    container.innerHTML = html;
                 } else {
                     container.innerHTML = `
                         <a href="auth.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Đăng nhập / Đăng ký</a>
@@ -179,7 +187,6 @@
         // --- Fetch and Render Posts ---
         function fetchAndRenderPosts() {
             if (!db) return;
-            // Sắp xếp bài viết theo ngày xuất bản (publishAt), mới nhất hoặc sắp ra mắt sẽ lên đầu.
             const q = query(collection(db, "posts"), orderBy('publishAt', 'desc'));
 
             onSnapshot(q, (snapshot) => {
