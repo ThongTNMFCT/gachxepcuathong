@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gác xép của Thông</title>
     
-    <!-- Các thẻ Meta cơ bản, sẽ được cập nhật bằng JS -->
+    <!-- Thẻ Meta tĩnh cho Social Media Sharing (Fallback cho crawlers) -->
+    <meta property="og:title" content="Một câu chuyện trên Gác xép của Thông">
+    <meta property="og:description" content="Nơi lưu giữ những mẩu chuyện nhỏ xinh, những suy tư vụn vặt và cả những hành trình đáng nhớ.">
+    <meta property="og:image" content="https://i.ibb.co/7jXgTzD/gacxep-cover-share.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="Gác xép của Thông">
     <meta property="og:type" content="article">
     
@@ -197,15 +202,16 @@
 
         // --- Function to update Meta Tags for sharing ---
         function updateMetaTags(postData) {
-            // Remove existing OG tags to avoid duplicates
+            // Remove existing OG tags to avoid duplicates from static ones
             document.querySelectorAll('meta[property^="og:"]').forEach(tag => tag.remove());
 
             const tags = {
                 'og:title': postData.title,
                 'og:description': postData.excerpt || 'Một câu chuyện từ Gác xép của Thông.',
-                'og:image': postData.coverImageUrl || 'https://placehold.co/1200x630/fdfaf3/a16207?text=Gác+xép+của+Thông',
+                'og:image': postData.coverImageUrl || 'https://i.ibb.co/7jXgTzD/gacxep-cover-share.png',
                 'og:url': window.location.href,
-                'og:type': 'article'
+                'og:type': 'article',
+                'og:site_name': 'Gác xép của Thông'
             };
 
             for (const [property, content] of Object.entries(tags)) {
