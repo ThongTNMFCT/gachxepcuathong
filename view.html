@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gác xép của Thông</title>
     
+    <!-- Các thẻ Meta cơ bản, sẽ được cập nhật bằng JS -->
+    <meta property="og:site_name" content="Gác xép của Thông">
+    <meta property="og:type" content="article">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -24,7 +28,7 @@
             font-family: 'Patrick Hand', cursive;
         }
         .post-content {
-            line-height: 2; /* Tăng khoảng cách dòng để dễ đọc hơn */
+            line-height: 2; /* Tăng khoảng cách dòng */
         }
         .post-content p {
             margin-bottom: 1.25rem; /* Thêm khoảng cách giữa các đoạn văn */
@@ -191,6 +195,27 @@
             });
         });
 
+        // --- Function to update Meta Tags for sharing ---
+        function updateMetaTags(postData) {
+            // Remove existing OG tags to avoid duplicates
+            document.querySelectorAll('meta[property^="og:"]').forEach(tag => tag.remove());
+
+            const tags = {
+                'og:title': postData.title,
+                'og:description': postData.excerpt || 'Một câu chuyện từ Gác xép của Thông.',
+                'og:image': postData.coverImageUrl || 'https://placehold.co/1200x630/fdfaf3/a16207?text=Gác+xép+của+Thông',
+                'og:url': window.location.href,
+                'og:type': 'article'
+            };
+
+            for (const [property, content] of Object.entries(tags)) {
+                const meta = document.createElement('meta');
+                meta.setAttribute('property', property);
+                meta.content = content;
+                document.head.appendChild(meta);
+            }
+        }
+
         // --- Fetch and Render Post ---
         async function fetchAndRenderPost() {
             const postContainer = document.getElementById('post-container');
@@ -208,6 +233,10 @@
 
                 if (docSnap.exists()) {
                     const post = docSnap.data();
+                    
+                    // Update meta tags for sharing
+                    updateMetaTags(post);
+
                     const publishDate = post.publishAt.toDate().toLocaleDateString('vi-VN', {
                         day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
                     });
