@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Gác xép của Thông</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fdfaf3;
+            color: #5d4037;
+        }
+        .font-handwriting {
+            font-family: 'Patrick Hand', cursive;
+        }
+        .menu-item.active {
+            position: relative;
+            color: #a16207;
+        }
+        .menu-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background-color: #a16207;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header Section -->
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-20 shadow-sm border-b border-amber-200">
+        <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <!-- Brand Logo -->
+            <a href="index.html" class="font-handwriting text-4xl text-amber-600">Gác xép của Thông</a>
+            
+            <!-- Main Navigation (Desktop) -->
+            <ul class="hidden lg:flex items-center gap-2">
+                <li><a href="index.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Trang chủ</a></li>
+                <li><a href="nhat-ki.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Nhật kí</a></li>
+                <li><a href="bai-viet.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Bài viết</a></li>
+                <li><a href="chuyen-doi-thuong.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Chuyện đời thường</a></li>
+            </ul>
+            
+            <!-- Mobile Menu Button -->
+            <div class="lg:hidden">
+                <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white/95 backdrop-blur-sm shadow-lg absolute top-20 left-0 w-full z-10">
+        <ul class="flex flex-col items-center gap-4 py-8">
+            <li><a href="index.html" class="menu-item p-2">Trang chủ</a></li>
+            <li><a href="nhat-ki.html" class="menu-item p-2">Nhật kí</a></li>
+            <li><a href="bai-viet.html" class="menu-item p-2">Bài viết</a></li>
+            <li><a href="chuyen-doi-thuong.html" class="menu-item p-2">Chuyện đời thường</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
+        <div class="w-full max-w-md bg-white p-8 md:p-10 rounded-2xl shadow-lg">
+            <h2 id="form-title" class="text-3xl font-bold text-center text-amber-900">Đăng nhập</h2>
+            
+            <!-- Auth Form -->
+            <form id="auth-form" class="mt-8 space-y-6">
+                <input id="name" type="text" autocomplete="name" class="hidden w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-amber-500 focus:border-amber-500" placeholder="Tên của bạn">
+                <input id="email" type="email" autocomplete="email" required class="w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-amber-500 focus:border-amber-500" placeholder="Địa chỉ Email">
+                <input id="password" type="password" autocomplete="current-password" required class="w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-amber-500 focus:border-amber-500" placeholder="Mật khẩu">
+                
+                <p id="error-message" class="text-red-500 text-sm text-center"></p>
+
+                <button id="submit-button" type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition">
+                    Đăng nhập
+                </button>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-amber-200"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">Hoặc tiếp tục với</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button id="google-signin" class="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                        <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.99,34.556,44,28.717,44,20C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                        <span>Đăng nhập với Google</span>
+                    </button>
+                </div>
+            </div>
+
+            <p class="mt-6 text-center text-sm">
+                <span id="prompt-text">Chưa có tài khoản?</span>
+                <button id="toggle-form" class="font-medium text-amber-600 hover:text-amber-500">
+                    Đăng ký ngay
+                </button>
+            </p>
+        </div>
+    </main>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { firebaseConfig } from './key.js';
+
+        // --- Initialize Firebase ---
+        let auth;
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+        } catch(e) {
+            console.error("Lỗi khởi tạo Firebase:", e);
+            document.getElementById('error-message').textContent = "Lỗi kết nối đến server.";
+        }
+        
+        // Redirect if already logged in
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // --- DOM Elements ---
+        const formTitle = document.getElementById('form-title');
+        const submitButton = document.getElementById('submit-button');
+        const promptText = document.getElementById('prompt-text');
+        const toggleFormButton = document.getElementById('toggle-form');
+        const authForm = document.getElementById('auth-form');
+        const googleSigninButton = document.getElementById('google-signin');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        let isLogin = true;
+
+        // --- Mobile Menu Toggle ---
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // --- Form Toggle Logic ---
+        toggleFormButton.addEventListener('click', () => {
+            isLogin = !isLogin;
+            formTitle.textContent = isLogin ? 'Đăng nhập' : 'Tạo tài khoản';
+            submitButton.textContent = isLogin ? 'Đăng nhập' : 'Đăng ký';
+            promptText.textContent = isLogin ? 'Chưa có tài khoản?' : 'Đã có tài khoản?';
+            toggleFormButton.textContent = isLogin ? 'Đăng ký ngay' : 'Đăng nhập';
+            errorMessage.textContent = '';
+            if (isLogin) {
+                nameInput.classList.add('hidden');
+                nameInput.required = false;
+            } else {
+                nameInput.classList.remove('hidden');
+                nameInput.required = true;
+            }
+        });
+
+        // --- Email/Password Auth ---
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = nameInput.value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            errorMessage.textContent = ''; // Clear previous error
+
+            if (isLogin) {
+                signInWithEmailAndPassword(auth, email, password)
+                    .then(userCredential => {
+                        window.location.href = 'index.html';
+                    })
+                    .catch(error => {
+                        errorMessage.textContent = "Email hoặc mật khẩu không đúng.";
+                    });
+            } else {
+                createUserWithEmailAndPassword(auth, email, password)
+                    .then(userCredential => {
+                        // Update profile with display name
+                        return updateProfile(userCredential.user, {
+                            displayName: name
+                        });
+                    })
+                    .then(() => {
+                        window.location.href = 'index.html';
+                    })
+                    .catch(error => {
+                        if (error.code === 'auth/email-already-in-use') {
+                            errorMessage.textContent = 'Email này đã được sử dụng.';
+                        } else if (error.code === 'auth/weak-password') {
+                            errorMessage.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.';
+                        } else {
+                            errorMessage.textContent = 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+                        }
+                    });
+            }
+        });
+
+        // --- Google Sign-In ---
+        googleSigninButton.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider)
+                .then(result => {
+                    window.location.href = 'index.html';
+                })
+                .catch(error => {
+                    console.error("Lỗi đăng nhập Google:", error);
+                    errorMessage.textContent = 'Không thể đăng nhập với Google.';
+                });
+        });
+    </script>
+</body>
+</html>
+

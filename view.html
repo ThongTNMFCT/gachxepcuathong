@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gác xép của Thông</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fdfaf3;
+            color: #5d4037;
+        }
+        .font-handwriting {
+            font-family: 'Patrick Hand', cursive;
+        }
+        .post-content {
+            line-height: 2; /* Tăng khoảng cách dòng để dễ đọc hơn */
+        }
+        .post-content p {
+            margin-bottom: 1.25rem; /* Thêm khoảng cách giữa các đoạn văn */
+        }
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 2rem 0;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .post-content h1, .post-content h2, .post-content h3 {
+            font-weight: bold;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        .post-content a {
+            color: #a16207;
+            text-decoration: underline;
+        }
+        /* Styles for post hero */
+        .post-hero {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .post-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+            border-radius: 0.75rem;
+        }
+        .post-hero > * {
+            position: relative;
+            z-index: 2;
+        }
+        .post-hero h1, .post-hero p, .post-hero span {
+            text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.7);
+        }
+        .menu-item.active {
+            position: relative;
+            color: #a16207;
+        }
+        .menu-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background-color: #a16207;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header Section -->
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-20 shadow-sm border-b border-amber-200">
+        <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <!-- Brand Logo -->
+            <a href="index.html" class="font-handwriting text-4xl text-amber-600">Gác xép của Thông</a>
+            
+            <!-- Main Navigation (Desktop) -->
+            <ul class="hidden lg:flex items-center gap-2">
+                <li><a href="index.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Trang chủ</a></li>
+                <li><a href="nhat-ki.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Nhật kí</a></li>
+                <li><a href="bai-viet.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Bài viết</a></li>
+                <li><a href="chuyen-doi-thuong.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Chuyện đời thường</a></li>
+            </ul>
+
+            <!-- Auth Section (Desktop) -->
+            <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm">
+                <!-- Sẽ được cập nhật bằng JS -->
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="lg:hidden">
+                <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white/95 backdrop-blur-sm shadow-lg absolute top-20 left-0 w-full z-10">
+        <ul class="flex flex-col items-center gap-4 py-8">
+            <li><a href="index.html" class="menu-item p-2">Trang chủ</a></li>
+            <li><a href="nhat-ki.html" class="menu-item p-2">Nhật kí</a></li>
+            <li><a href="bai-viet.html" class="menu-item p-2">Bài viết</a></li>
+            <li><a href="chuyen-doi-thuong.html" class="menu-item p-2">Chuyện đời thường</a></li>
+        </ul>
+        <div id="mobile-auth-container" class="border-t border-amber-100 flex flex-col items-center gap-4 py-6">
+             <!-- Mobile auth buttons will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="post-container" class="container mx-auto p-6 max-w-4xl">
+        <!-- Post content will be loaded here -->
+        <p id="loading-message" class="text-center text-gray-500 py-20">Đang mở bài viết...</p>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-8 mt-12 border-t border-amber-100">
+        <p class="text-amber-800">&copy; 2025, Gác xép của Thông.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig } from './key.js';
+
+        // --- Initialize Firebase ---
+        let db, auth;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.error("Lỗi khởi tạo Firebase:", e);
+            document.getElementById('post-container').innerHTML = `<p class="text-center text-red-500 py-20">Lỗi kết nối đến server.</p>`;
+        }
+        
+        // --- DOM Elements ---
+        const authContainer = document.getElementById('auth-container');
+        const mobileAuthContainer = document.getElementById('mobile-auth-container');
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // --- Mobile Menu Toggle ---
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // --- Authentication Listener ---
+        onAuthStateChanged(auth, (user) => {
+            const updateAuthUI = (container) => {
+                container.innerHTML = ''; // Clear old content
+                if (user) {
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    container.innerHTML = `
+                        <span class="font-semibold text-amber-800">Chào, ${displayName}!</span>
+                        <a href="admin.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Quản trị</a>
+                        <button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <a href="auth.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Đăng nhập / Đăng ký</a>
+                    `;
+                }
+            };
+            
+            updateAuthUI(authContainer);
+            updateAuthUI(mobileAuthContainer);
+            
+            document.querySelectorAll('.logout-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    signOut(auth).catch(error => console.error('Sign out error', error));
+                });
+            });
+        });
+
+        // --- Fetch and Render Post ---
+        async function fetchAndRenderPost() {
+            const postContainer = document.getElementById('post-container');
+            const params = new URLSearchParams(window.location.search);
+            const postId = params.get('id');
+
+            if (!db || !postId) {
+                postContainer.innerHTML = `<h1 class="text-center text-2xl font-bold py-20">Không tìm thấy bài viết.</h1>`;
+                return;
+            }
+
+            try {
+                const postRef = doc(db, 'posts', postId);
+                const docSnap = await getDoc(postRef);
+
+                if (docSnap.exists()) {
+                    const post = docSnap.data();
+                    const publishDate = post.publishAt.toDate().toLocaleDateString('vi-VN', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+
+                    document.title = `${post.title} - Gác xép của Thông`;
+
+                    const menuItems = document.querySelectorAll('.menu-item');
+                    menuItems.forEach(item => {
+                        item.classList.remove('active');
+                        if (item.textContent.trim().toLowerCase() === post.category.trim().toLowerCase()) {
+                            item.classList.add('active');
+                        }
+                    });
+
+                    const coverImageUrl = post.coverImageUrl || `https://placehold.co/1200x600/fef3c7/a16207?text=Gác+Xép`;
+
+                    postContainer.innerHTML = `
+                        <article>
+                            <header 
+                                class="post-hero rounded-xl overflow-hidden text-white p-8 md:p-16 flex flex-col justify-center items-center text-center min-h-[40vh]" 
+                                style="background-image: url('${coverImageUrl}')">
+                                
+                                <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">${post.category}</span>
+                                <h1 class="text-3xl md:text-5xl font-bold mt-4 leading-tight">${post.title}</h1>
+                                <p class="mt-4 opacity-80">${publishDate}</p>
+                            </header>
+                            
+                            <div class="post-content text-lg text-gray-800 mt-8 md:mt-12 bg-white p-6 md:p-8 rounded-xl shadow-sm">
+                                ${post.content}
+                            </div>
+                        </article>
+                    `;
+                } else {
+                    postContainer.innerHTML = `<h1 class="text-center text-2xl font-bold py-20">Bài viết không tồn tại hoặc đã bị xóa.</h1>`;
+                }
+
+            } catch (error) {
+                console.error("Lỗi tải bài viết: ", error);
+                postContainer.innerHTML = `<p class="text-center text-red-500 py-20">Không thể tải bài viết. Vui lòng thử lại.</p>`;
+            }
+        }
+
+        // --- Initial Load ---
+        fetchAndRenderPost();
+    </script>
+</body>
+</html>
+

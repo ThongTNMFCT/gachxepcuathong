@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị - Gác xép của Thông</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+    <!-- Quill Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fdfaf3;
+            color: #5d4037;
+        }
+        .font-handwriting {
+            font-family: 'Patrick Hand', cursive;
+        }
+        /* Tùy chỉnh trình soạn thảo Quill */
+        .ql-editor {
+            min-height: 300px;
+            font-size: 1.125rem;
+            line-height: 1.8;
+        }
+        /* Tùy chỉnh thanh tab */
+        .tab-btn {
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            border-color: #a16207;
+            color: #a16207;
+            background-color: #fef3c7;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm border-b border-amber-200">
+        <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="index.html" class="font-handwriting text-4xl text-amber-600">Gác xép của Thông</a>
+            <div id="user-info" class="text-right">
+                <!-- User info will be inserted here -->
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-amber-900 mb-8">Bảng điều khiển</h1>
+
+        <!-- Tabs Navigation -->
+        <div class="border-b border-gray-200 mb-8">
+            <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                <button id="tab-write" class="tab-btn active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Viết bài mới</button>
+                <button id="tab-manage" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Quản lý bài viết</button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div>
+            <!-- Write/Edit Post Tab -->
+            <div id="content-write">
+                <form id="post-form" class="space-y-6">
+                    <input type="hidden" id="edit-post-id">
+                    <div>
+                        <label for="post-title" class="block text-lg font-medium text-amber-900">Tiêu đề bài viết</label>
+                        <input type="text" id="post-title" name="post-title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                             <label for="post-category" class="block text-lg font-medium text-amber-900">Chuyên mục</label>
+                            <select id="post-category" name="post-category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3">
+                                <option>Nhật kí</option>
+                                <option>Bài viết</option>
+                                <option>Chuyện đời thường</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="publish-date" class="block text-lg font-medium text-amber-900">Ngày xuất bản</label>
+                            <input type="datetime-local" id="publish-date" name="publish-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3">
+                            <p class="text-sm text-gray-500 mt-1">Để trống để đăng ngay lập tức.</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="cover-image-upload" class="block text-lg font-medium text-amber-900">Ảnh bìa (1200x600)</label>
+                        <input type="file" id="cover-image-upload" accept="image/*" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                        <img id="cover-image-preview" src="" alt="Xem trước ảnh bìa" class="mt-4 rounded-lg hidden max-h-60">
+                    </div>
+
+                    <div>
+                        <label class="block text-lg font-medium text-amber-900">Nội dung</label>
+                        <div id="editor" class="mt-1 bg-white rounded-md"></div>
+                        <p class="text-sm text-gray-500 mt-1">Mẹo: Bạn có thể dán ảnh trực tiếp vào khung soạn thảo.</p>
+                    </div>
+                    
+                    <div>
+                        <label for="post-excerpt" class="block text-lg font-medium text-amber-900">Đoạn trích ngắn</label>
+                        <textarea id="post-excerpt" name="post-excerpt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3"></textarea>
+                    </div>
+
+                    <div class="flex items-center gap-4 pt-4">
+                        <button type="submit" id="submit-btn" class="bg-amber-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-700 transition duration-300 text-lg">Xuất bản bài viết</button>
+                        <button type="button" id="cancel-edit-btn" class="hidden bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 transition duration-300 text-lg">Hủy bỏ</button>
+                        <span id="loading-spinner" class="hidden">
+                            <svg class="animate-spin h-5 w-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </span>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manage Posts Tab -->
+            <div id="content-manage" class="hidden">
+                <div id="manage-post-list" class="space-y-4">
+                    <!-- Post list will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, deleteDoc, serverTimestamp, Timestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig, IMGBB_API_KEY } from './key.js';
+
+        // --- Initialize Firebase ---
+        let db, auth, adminEmail = 'thongtnmfct31178@gmail.com';
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.error("Lỗi khởi tạo Firebase:", e);
+            alert("Không thể kết nối đến Firebase!");
+        }
+
+        // --- Quill Editor Setup ---
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{'list': 'ordered'}, {'list': 'bullet'}],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // --- DOM Elements ---
+        const userInfo = document.getElementById('user-info');
+        const postForm = document.getElementById('post-form');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const managePostList = document.getElementById('manage-post-list');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        
+        // --- Tabs ---
+        const tabWrite = document.getElementById('tab-write');
+        const tabManage = document.getElementById('tab-manage');
+        const contentWrite = document.getElementById('content-write');
+        const contentManage = document.getElementById('content-manage');
+
+        tabWrite.addEventListener('click', () => {
+            tabWrite.classList.add('active');
+            tabManage.classList.remove('active');
+            contentWrite.style.display = 'block';
+            contentManage.style.display = 'none';
+        });
+
+        tabManage.addEventListener('click', () => {
+            tabManage.classList.add('active');
+            tabWrite.classList.remove('active');
+            contentManage.style.display = 'block';
+            contentWrite.style.display = 'none';
+        });
+
+        // --- Auth Check ---
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === adminEmail) {
+                userInfo.innerHTML = `
+                    <p class="font-semibold text-amber-800">${user.displayName || user.email}</p>
+                    <button id="logout-btn" class="text-sm text-gray-500 hover:text-amber-800">Đăng xuất</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // --- Slugify Function ---
+        function createSlug(title) {
+            return title
+                .toLowerCase()
+                .normalize('NFD') // Decompose accented characters
+                .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+                .replace(/đ/g, 'd') // Special case for 'đ'
+                .replace(/[^a-z0-9\s-]/g, '') // Remove non-alphanumeric characters except spaces and hyphens
+                .trim()
+                .replace(/\s+/g, '-') // Replace spaces with hyphens
+                .replace(/-+/g, '-'); // Remove consecutive hyphens
+        }
+
+        // --- Image Upload Function ---
+        async function uploadImageToImgBB(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                const result = await response.json();
+                if (result.success) {
+                    return result.data.url;
+                } else {
+                    throw new Error(result.error.message);
+                }
+            } catch (error) {
+                console.error('Lỗi tải ảnh lên ImgBB:', error);
+                alert(`Lỗi tải ảnh: ${error.message}`);
+                return null;
+            }
+        }
+
+        // --- Handle Image Pasting into Quill ---
+        quill.getModule('toolbar').addHandler('image', () => {
+             const input = document.createElement('input');
+             input.setAttribute('type', 'file');
+             input.setAttribute('accept', 'image/*');
+             input.click();
+             input.onchange = async () => {
+                 const file = input.files[0];
+                 if (file) {
+                     loadingSpinner.classList.remove('hidden');
+                     const imageUrl = await uploadImageToImgBB(file);
+                     if (imageUrl) {
+                         const range = quill.getSelection(true);
+                         quill.insertEmbed(range.index, 'image', imageUrl);
+                     }
+                     loadingSpinner.classList.add('hidden');
+                 }
+             };
+        });
+        
+        // --- Cover Image Preview ---
+        const coverImageUpload = document.getElementById('cover-image-upload');
+        const coverImagePreview = document.getElementById('cover-image-preview');
+        coverImageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    coverImagePreview.src = event.target.result;
+                    coverImagePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- Form Submission (Create and Update) ---
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            const title = document.getElementById('post-title').value;
+            const category = document.getElementById('post-category').value;
+            const excerpt = document.getElementById('post-excerpt').value;
+            const publishDateStr = document.getElementById('publish-date').value;
+            const contentHTML = quill.root.innerHTML;
+            const contentDelta = JSON.stringify(quill.getContents());
+            const coverImageFile = coverImageUpload.files[0];
+            const editPostId = document.getElementById('edit-post-id').value;
+
+            let coverImageUrl = coverImagePreview.src;
+            if (coverImageFile) { // A new file is selected
+                coverImageUrl = await uploadImageToImgBB(coverImageFile);
+                if (!coverImageUrl) {
+                    loadingSpinner.classList.add('hidden');
+                    submitBtn.disabled = false;
+                    return; // Stop if image upload fails
+                }
+            }
+            
+            const postData = {
+                title,
+                category,
+                excerpt,
+                content: contentHTML,
+                contentDelta,
+                coverImageUrl: coverImageUrl || null,
+                publishAt: publishDateStr ? Timestamp.fromDate(new Date(publishDateStr)) : serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                if (editPostId) {
+                    // --- UPDATE MODE ---
+                    const postRef = doc(db, 'posts', editPostId);
+                    await updateDoc(postRef, postData);
+                    alert('Cập nhật bài viết thành công!');
+                    resetFormAndSwitchToManage();
+                } else {
+                    // --- CREATE MODE ---
+                    postData.createdAt = serverTimestamp();
+                    const slug = createSlug(title);
+                    const postRef = doc(db, 'posts', slug);
+                    await setDoc(postRef, postData);
+                    alert('Đăng bài viết thành công!');
+                    postForm.reset();
+                    quill.setText('');
+                    coverImagePreview.classList.add('hidden');
+                    coverImagePreview.src = '';
+                }
+            } catch (error) {
+                console.error("Lỗi khi lưu bài viết: ", error);
+                alert("Đã có lỗi xảy ra, vui lòng thử lại.");
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        });
+
+        // --- Fetch and Display Posts for Management ---
+        function listenToPosts() {
+            const q = query(collection(db, "posts"), orderBy("publishAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                managePostList.innerHTML = '';
+                if (snapshot.empty) {
+                    managePostList.innerHTML = '<p>Chưa có bài viết nào.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const post = doc.data();
+                    const postEl = document.createElement('div');
+                    postEl.className = 'flex justify-between items-center bg-white p-4 rounded-lg shadow-sm';
+                    
+                    const publishDate = post.publishAt?.toDate();
+                    const isPublished = !publishDate || publishDate <= new Date();
+                    const statusClass = isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                    const statusText = isPublished ? 'Đã xuất bản' : 'Đã lên lịch';
+
+                    postEl.innerHTML = `
+                        <div>
+                            <p class="font-bold text-lg">${post.title}</p>
+                            <p class="text-sm text-gray-500">
+                                ${post.category} - 
+                                <span class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded ${statusClass}">${statusText}</span>
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button data-id="${doc.id}" class="edit-btn bg-blue-100 text-blue-800 hover:bg-blue-200 font-semibold py-1 px-3 rounded-lg text-sm">Sửa</button>
+                            <button data-id="${doc.id}" class="delete-btn bg-red-100 text-red-800 hover:bg-red-200 font-semibold py-1 px-3 rounded-lg text-sm">Xóa</button>
+                        </div>
+                    `;
+                    managePostList.appendChild(postEl);
+                });
+            });
+        }
+        
+        listenToPosts();
+
+        // --- Manage Posts Event Listeners (Delete and Edit) ---
+        managePostList.addEventListener('click', async (e) => {
+            const target = e.target;
+            const postId = target.dataset.id;
+            if (!postId) return;
+
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) {
+                    try {
+                        await deleteDoc(doc(db, 'posts', postId));
+                        alert('Đã xóa bài viết.');
+                    } catch (error) {
+                        console.error('Lỗi xóa bài viết:', error);
+                        alert('Không thể xóa bài viết.');
+                    }
+                }
+            } else if (target.classList.contains('edit-btn')) {
+                // --- START EDIT ---
+                const postRef = doc(db, 'posts', postId);
+                const docSnap = await getDoc(postRef);
+                if (docSnap.exists()) {
+                    const post = docSnap.data();
+                    
+                    // Populate form
+                    document.getElementById('edit-post-id').value = postId;
+                    document.getElementById('post-title').value = post.title;
+                    document.getElementById('post-category').value = post.category;
+                    document.getElementById('post-excerpt').value = post.excerpt || '';
+                    if (post.publishAt) {
+                        const d = post.publishAt.toDate();
+                        // Format to yyyy-MM-ddThh:mm
+                        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                        document.getElementById('publish-date').value = d.toISOString().slice(0,16);
+                    }
+                    quill.setContents(JSON.parse(post.contentDelta));
+                    if(post.coverImageUrl) {
+                        coverImagePreview.src = post.coverImageUrl;
+                        coverImagePreview.classList.remove('hidden');
+                    } else {
+                        coverImagePreview.classList.add('hidden');
+                        coverImagePreview.src = '';
+                    }
+
+                    // Switch to edit mode UI
+                    submitBtn.textContent = 'Cập nhật bài viết';
+                    cancelEditBtn.classList.remove('hidden');
+                    tabWrite.click();
+                    window.scrollTo(0, 0);
+                }
+            }
+        });
+        
+        // --- Cancel Edit Button ---
+        cancelEditBtn.addEventListener('click', () => {
+             resetFormAndSwitchToManage();
+        });
+
+        function resetFormAndSwitchToManage() {
+            postForm.reset();
+            quill.setText('');
+            document.getElementById('edit-post-id').value = '';
+            coverImagePreview.classList.add('hidden');
+            coverImagePreview.src = '';
+            
+            submitBtn.textContent = 'Xuất bản bài viết';
+            cancelEditBtn.classList.add('hidden');
+            tabManage.click();
+        }
+
+    </script>
+</body>
+</html>
+

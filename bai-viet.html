@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài viết - Gác xép của Thông</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fdfaf3;
+            color: #5d4037;
+        }
+        .font-handwriting {
+            font-family: 'Patrick Hand', cursive;
+        }
+        .menu-item.active {
+            position: relative;
+            color: #a16207;
+        }
+        .menu-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background-color: #a16207;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease-in-out;
+        }
+        .card-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header Section -->
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-20 shadow-sm border-b border-amber-200">
+        <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <!-- Brand Logo -->
+            <a href="index.html" class="font-handwriting text-4xl text-amber-600">Gác xép của Thông</a>
+            
+            <!-- Main Navigation (Desktop) -->
+            <ul class="hidden lg:flex items-center gap-2">
+                <li><a href="index.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Trang chủ</a></li>
+                <li><a href="nhat-ki.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Nhật kí</a></li>
+                <li><a href="bai-viet.html" class="menu-item active font-semibold p-2 rounded-md hover:bg-amber-100 transition">Bài viết</a></li>
+                <li><a href="chuyen-doi-thuong.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Chuyện đời thường</a></li>
+            </ul>
+
+            <!-- Auth Section (Desktop) -->
+            <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm">
+                <!-- Sẽ được cập nhật bằng JS -->
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <div class="lg:hidden">
+                <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white/95 backdrop-blur-sm shadow-lg absolute top-20 left-0 w-full z-10">
+        <ul class="flex flex-col items-center gap-4 py-8">
+            <li><a href="index.html" class="menu-item p-2">Trang chủ</a></li>
+            <li><a href="nhat-ki.html" class="menu-item p-2">Nhật kí</a></li>
+            <li><a href="bai-viet.html" class="menu-item active p-2">Bài viết</a></li>
+            <li><a href="chuyen-doi-thuong.html" class="menu-item p-2">Chuyện đời thường</a></li>
+        </ul>
+        <div id="mobile-auth-container" class="border-t border-amber-100 flex flex-col items-center gap-4 py-6">
+             <!-- Mobile auth buttons will be inserted here -->
+        </div>
+    </div>
+
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-6">
+        <!-- Welcome Section -->
+        <div class="text-center my-10">
+            <h1 class="text-4xl lg:text-5xl font-bold text-amber-900 leading-tight">Góc bài viết</h1>
+            <p class="text-lg mt-4 text-amber-800 max-w-2xl mx-auto">Nơi chia sẻ những kiến thức, quan điểm và những câu chuyện có chiều sâu.</p>
+        </div>
+        
+        <!-- Posts Section -->
+        <div id="post-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+            <!-- Bài viết từ Firebase sẽ hiển thị ở đây -->
+            <p id="loading-message" class="text-center col-span-full text-gray-500">Đang tìm những bài viết hay...</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-8 mt-12 border-t border-amber-100">
+        <p class="text-amber-800">&copy; 2025, Gác xép của Thông.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig } from './key.js';
+
+        // --- Initialize Firebase ---
+        let db, auth;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.error("Lỗi khởi tạo Firebase:", e);
+            const postList = document.getElementById('post-list');
+            if(postList) postList.innerHTML = `<p class="text-center col-span-full text-red-500">Lỗi kết nối đến server. Vui lòng thử lại sau.</p>`;
+        }
+
+        // --- DOM Elements ---
+        const authContainer = document.getElementById('auth-container');
+        const mobileAuthContainer = document.getElementById('mobile-auth-container');
+        const postList = document.getElementById('post-list');
+        const loadingMessage = document.getElementById('loading-message');
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // --- Mobile Menu Toggle ---
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // --- Authentication Listener ---
+        onAuthStateChanged(auth, (user) => {
+            const updateAuthUI = (container) => {
+                container.innerHTML = ''; // Clear old content
+                if (user) {
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    container.innerHTML = `
+                        <span class="font-semibold text-amber-800">Chào, ${displayName}!</span>
+                        <a href="admin.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Quản trị</a>
+                        <button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <a href="auth.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Đăng nhập / Đăng ký</a>
+                    `;
+                }
+            };
+            
+            updateAuthUI(authContainer);
+            updateAuthUI(mobileAuthContainer);
+            
+            document.querySelectorAll('.logout-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    signOut(auth).catch(error => console.error('Sign out error', error));
+                });
+            });
+        });
+
+        // --- Fetch and Render Posts ---
+        function fetchAndRenderPosts() {
+            if (!db) return;
+            const q = query(
+                collection(db, "posts"), 
+                where("category", "==", "Bài viết"), 
+                orderBy('publishAt', 'desc')
+            );
+
+            onSnapshot(q, (snapshot) => {
+                if (loadingMessage) loadingMessage.style.display = 'none';
+                
+                postList.innerHTML = ''; // Clear previous content
+                let hasPublishedPosts = false;
+
+                snapshot.forEach(doc => {
+                    const post = doc.data();
+                    const now = new Date();
+                    const publishDate = post.publishAt?.toDate();
+                    const isPublished = !publishDate || publishDate <= now;
+
+                    if (!isPublished) {
+                        return; // Skip scheduled posts
+                    }
+                    
+                    hasPublishedPosts = true;
+                    const postCard = document.createElement('div');
+                    postCard.className = 'card-shadow bg-white rounded-2xl flex flex-col overflow-hidden';
+                    
+                    const createdAtDate = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('vi-VN', {
+                        day: '2-digit', month: '2-digit', year: 'numeric'
+                    }) : 'Ngày không xác định';
+                    
+                    const imageUrl = post.coverImageUrl || `https://placehold.co/600x400/fef3c7/a16207?text=Bài+Viết`;
+
+                    postCard.innerHTML = `
+                        <a href="view.html?id=${doc.id}">
+                            <img src="${imageUrl}" alt="${post.title || 'Ảnh bìa'}" class="w-full h-56 object-cover">
+                        </a>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-1 rounded-full mb-3 self-start">${post.category}</span>
+                            <h3 class="text-xl font-bold text-amber-900 mb-2">${post.title || 'Tiêu đề trống'}</h3>
+                            <p class="text-xs text-gray-400 mb-4">${createdAtDate}</p>
+                            <p class="text-gray-600 mb-4 flex-grow">${post.excerpt || '...'}</p>
+                            <a href="view.html?id=${doc.id}" class="text-amber-600 font-bold hover:text-amber-800 mt-auto self-start">Đọc tiếp &rarr;</a>
+                        </div>
+                    `;
+                    postList.appendChild(postCard);
+                });
+
+                if (!hasPublishedPosts) {
+                    postList.innerHTML = `<p class="text-center col-span-full">Chưa có bài viết nào trong chuyên mục này.</p>`;
+                }
+
+            }, (error) => {
+                console.error("Lỗi tải bài viết: ", error);
+                if (loadingMessage) loadingMessage.style.display = 'none';
+                postList.innerHTML = `<p class="text-center col-span-full text-red-500">Không tải được bài viết. Vui lòng thử lại sau.</p>`;
+            });
+        }
+
+        // --- Initial Load ---
+        if (db) {
+            fetchAndRenderPosts();
+        }
+
+    </script>
+</body>
+</html>
+
