@@ -73,7 +73,7 @@
             <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm">
                 <!-- Sẽ được cập nhật bằng JS -->
             </div>
-            
+
             <!-- Mobile Menu Button -->
             <div class="lg:hidden">
                 <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
@@ -82,20 +82,19 @@
             </div>
         </nav>
     </header>
-    
+
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden lg:hidden bg-white/95 backdrop-blur-sm shadow-lg absolute top-20 left-0 w-full z-10">
         <ul class="flex flex-col items-center gap-4 py-8">
-            <li><a href="index.html" class="menu-item active font-semibold p-2">Trang chủ</a></li>
-            <li><a href="nhat-ki.html" class="menu-item font-semibold p-2">Nhật kí</a></li>
-            <li><a href="bai-viet.html" class="menu-item font-semibold p-2">Bài viết</a></li>
-            <li><a href="chuyen-doi-thuong.html" class="menu-item font-semibold p-2">Chuyện đời thường</a></li>
+            <li><a href="index.html" class="menu-item active p-2">Trang chủ</a></li>
+            <li><a href="nhat-ki.html" class="menu-item p-2">Nhật kí</a></li>
+            <li><a href="bai-viet.html" class="menu-item p-2">Bài viết</a></li>
+            <li><a href="chuyen-doi-thuong.html" class="menu-item p-2">Chuyện đời thường</a></li>
         </ul>
         <div id="mobile-auth-container" class="border-t border-amber-100 flex flex-col items-center gap-4 py-6">
              <!-- Mobile auth buttons will be inserted here -->
         </div>
     </div>
-
 
     <!-- Main Content -->
     <main class="container mx-auto p-6">
@@ -148,7 +147,7 @@
         menuToggle.addEventListener('click', () => {
             mobileMenu.classList.toggle('hidden');
         });
-
+        
         // --- Authentication Listener ---
         onAuthStateChanged(auth, (user) => {
             const updateAuthUI = (container) => {
@@ -170,7 +169,6 @@
             updateAuthUI(authContainer);
             updateAuthUI(mobileAuthContainer);
             
-            // Add event listeners to all logout buttons
             document.querySelectorAll('.logout-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     signOut(auth).catch(error => console.error('Sign out error', error));
@@ -181,6 +179,7 @@
         // --- Fetch and Render Posts ---
         function fetchAndRenderPosts() {
             if (!db) return;
+            // Sắp xếp bài viết theo ngày xuất bản (publishAt), mới nhất hoặc sắp ra mắt sẽ lên đầu.
             const q = query(collection(db, "posts"), orderBy('publishAt', 'desc'));
 
             onSnapshot(q, (snapshot) => {
@@ -202,15 +201,16 @@
                     postCard.className = `post-card card-shadow bg-white rounded-2xl flex flex-col overflow-hidden ${!isPublished ? 'scheduled' : ''}`;
                     
                     const publishDateLocale = publishDate ? publishDate.toLocaleDateString('vi-VN') : 'Sắp ra mắt';
-                    const createdAtDate = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('vi-VN', {
-                        day: '2-digit', month: '2-digit', year: 'numeric'
-                    }) : 'Ngày không xác định';
                     
                     const imageUrl = post.coverImageUrl || `https://placehold.co/600x400/fef3c7/a16207?text=Gác+Xép`;
 
                     let cardContentHTML = '';
 
                     if (isPublished) {
+                        const createdAtDate = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('vi-VN', {
+                            day: '2-digit', month: '2-digit', year: 'numeric'
+                        }) : publishDateLocale;
+
                         cardContentHTML = `
                             <a href="view.html?id=${doc.id}">
                                 <img src="${imageUrl}" alt="${post.title || 'Ảnh bìa'}" class="post-cover-image w-full h-56 object-cover">
