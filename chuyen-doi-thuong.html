@@ -95,13 +95,13 @@
         <!-- Welcome Section -->
         <div class="text-center my-10">
             <h1 class="text-4xl lg:text-5xl font-bold text-amber-900 leading-tight">Chuyện đời thường</h1>
-            <p class="text-lg mt-4 text-amber-800 max-w-2xl mx-auto">Những câu chuyện nhỏ nhặt, dung dị quanh ta mỗi ngày.</p>
+            <p class="text-lg mt-4 text-amber-800 max-w-2xl mx-auto">Những câu chuyện nhỏ nhặt, dung dị quanh ta.</p>
         </div>
         
         <!-- Posts Section -->
         <div id="post-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
             <!-- Bài viết từ Firebase sẽ hiển thị ở đây -->
-            <p id="loading-message" class="text-center col-span-full text-gray-500">Đang lật giở những trang truyện đời...</p>
+            <p id="loading-message" class="text-center col-span-full text-gray-500">Đang lật giở những trang chuyện...</p>
         </div>
     </main>
 
@@ -150,7 +150,6 @@
                     const displayName = user.displayName || user.email.split('@')[0];
                     container.innerHTML = `
                         <span class="font-semibold text-amber-800">Chào, ${displayName}!</span>
-                        <a href="admin.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Quản trị</a>
                         <button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>
                     `;
                 } else {
@@ -203,7 +202,7 @@
                         day: '2-digit', month: '2-digit', year: 'numeric'
                     }) : 'Ngày không xác định';
                     
-                    const imageUrl = post.coverImageUrl || `https://placehold.co/600x400/fef3c7/a16207?text=Chuyện+Đời`;
+                    const imageUrl = post.coverImageUrl || `https://placehold.co/600x400/fef3c7/a16207?text=Chuyện+Đời+Thường`;
 
                     postCard.innerHTML = `
                         <a href="view.html?id=${doc.id}">
@@ -221,7 +220,7 @@
                 });
 
                 if (!hasPublishedPosts) {
-                    postList.innerHTML = `<p class="text-center col-span-full">Chưa có câu chuyện nào được kể ở đây.</p>`;
+                    postList.innerHTML = `<p class="text-center col-span-full">Chưa có câu chuyện đời thường nào được kể cả.</p>`;
                 }
 
             }, (error) => {
