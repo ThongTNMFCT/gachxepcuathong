@@ -17,6 +17,9 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Custom CSS -->
     <style>
         body {
@@ -65,6 +68,7 @@
             <nav class="-mb-px flex space-x-6" aria-label="Tabs">
                 <button id="tab-write" class="tab-btn active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Viết bài mới</button>
                 <button id="tab-manage" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Quản lý bài viết</button>
+                <button id="tab-analytics" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Phân tích</button>
             </nav>
         </div>
 
@@ -128,6 +132,27 @@
                     <!-- Post list will be rendered here -->
                 </div>
             </div>
+
+            <!-- Analytics Tab -->
+            <div id="content-analytics" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-500">Tổng số bài viết</h3>
+                        <p id="total-posts" class="text-4xl font-bold text-amber-800">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-500">Tổng lượt xem</h3>
+                        <p id="total-views" class="text-4xl font-bold text-amber-800">0</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-4">Lượt xem theo bài viết</h3>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <canvas id="viewsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -170,24 +195,22 @@
         const submitBtn = document.getElementById('submit-btn');
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
         
-        // --- Tabs ---
-        const tabWrite = document.getElementById('tab-write');
-        const tabManage = document.getElementById('tab-manage');
-        const contentWrite = document.getElementById('content-write');
-        const contentManage = document.getElementById('content-manage');
+        // --- Tabs Elements ---
+        const tabs = [
+            { btn: document.getElementById('tab-write'), content: document.getElementById('content-write') },
+            { btn: document.getElementById('tab-manage'), content: document.getElementById('content-manage') },
+            { btn: document.getElementById('tab-analytics'), content: document.getElementById('content-analytics') }
+        ];
 
-        tabWrite.addEventListener('click', () => {
-            tabWrite.classList.add('active');
-            tabManage.classList.remove('active');
-            contentWrite.style.display = 'block';
-            contentManage.style.display = 'none';
-        });
-
-        tabManage.addEventListener('click', () => {
-            tabManage.classList.add('active');
-            tabWrite.classList.remove('active');
-            contentManage.style.display = 'block';
-            contentWrite.style.display = 'none';
+        tabs.forEach(tab => {
+            tab.btn.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.btn.classList.remove('active');
+                    t.content.style.display = 'none';
+                });
+                tab.btn.classList.add('active');
+                tab.content.style.display = 'block';
+            });
         });
 
         // --- Auth Check ---
@@ -205,33 +228,21 @@
         
         // --- Slugify Function ---
         function createSlug(title) {
-            return title
-                .toLowerCase()
-                .normalize('NFD') // Decompose accented characters
-                .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-                .replace(/đ/g, 'd') // Special case for 'đ'
-                .replace(/[^a-z0-9\s-]/g, '') // Remove non-alphanumeric characters except spaces and hyphens
-                .trim()
-                .replace(/\s+/g, '-') // Replace spaces with hyphens
-                .replace(/-+/g, '-'); // Remove consecutive hyphens
+            return title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
         }
 
         // --- Image Upload Function ---
         async function uploadImageToImgBB(file) {
+            if (!IMGBB_API_KEY || IMGBB_API_KEY === 'DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY') {
+                alert('Vui lòng cung cấp API Key của ImgBB trong file key.js!');
+                return null;
+            }
             const formData = new FormData();
             formData.append('image', file);
-            
             try {
-                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                    method: 'POST',
-                    body: formData,
-                });
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
                 const result = await response.json();
-                if (result.success) {
-                    return result.data.url;
-                } else {
-                    throw new Error(result.error.message);
-                }
+                return result.success ? result.data.url : null;
             } catch (error) {
                 console.error('Lỗi tải ảnh lên ImgBB:', error);
                 alert(`Lỗi tải ảnh: ${error.message}`);
@@ -239,7 +250,7 @@
             }
         }
 
-        // --- Handle Image Pasting into Quill ---
+        // --- Handle Image Pasting into Quill & Toolbar ---
         quill.getModule('toolbar').addHandler('image', () => {
              const input = document.createElement('input');
              input.setAttribute('type', 'file');
@@ -250,10 +261,7 @@
                  if (file) {
                      loadingSpinner.classList.remove('hidden');
                      const imageUrl = await uploadImageToImgBB(file);
-                     if (imageUrl) {
-                         const range = quill.getSelection(true);
-                         quill.insertEmbed(range.index, 'image', imageUrl);
-                     }
+                     if (imageUrl) quill.insertEmbed(quill.getSelection(true).index, 'image', imageUrl);
                      loadingSpinner.classList.add('hidden');
                  }
              };
@@ -290,39 +298,22 @@
             const editPostId = document.getElementById('edit-post-id').value;
 
             let coverImageUrl = coverImagePreview.src;
-            if (coverImageFile) { // A new file is selected
+            if (coverImageFile) {
                 coverImageUrl = await uploadImageToImgBB(coverImageFile);
-                if (!coverImageUrl) {
-                    loadingSpinner.classList.add('hidden');
-                    submitBtn.disabled = false;
-                    return; // Stop if image upload fails
-                }
+                if (!coverImageUrl) { loadingSpinner.classList.add('hidden'); submitBtn.disabled = false; return; }
             }
             
-            const postData = {
-                title,
-                category,
-                excerpt,
-                content: contentHTML,
-                contentDelta,
-                coverImageUrl: coverImageUrl || null,
-                publishAt: publishDateStr ? Timestamp.fromDate(new Date(publishDateStr)) : serverTimestamp(),
-                updatedAt: serverTimestamp()
-            };
+            const postData = { title, category, excerpt, content: contentHTML, contentDelta, coverImageUrl: coverImageUrl || null, publishAt: publishDateStr ? Timestamp.fromDate(new Date(publishDateStr)) : serverTimestamp(), updatedAt: serverTimestamp() };
 
             try {
                 if (editPostId) {
-                    // --- UPDATE MODE ---
-                    const postRef = doc(db, 'posts', editPostId);
-                    await updateDoc(postRef, postData);
+                    await updateDoc(doc(db, 'posts', editPostId), postData);
                     alert('Cập nhật bài viết thành công!');
                     resetFormAndSwitchToManage();
                 } else {
-                    // --- CREATE MODE ---
                     postData.createdAt = serverTimestamp();
-                    const slug = createSlug(title);
-                    const postRef = doc(db, 'posts', slug);
-                    await setDoc(postRef, postData);
+                    postData.views = 0; // Initialize views
+                    await setDoc(doc(db, 'posts', createSlug(title)), postData);
                     alert('Đăng bài viết thành công!');
                     postForm.reset();
                     quill.setText('');
@@ -338,44 +329,98 @@
             }
         });
 
-        // --- Fetch and Display Posts for Management ---
+        // --- Main Data Listener ---
+        let allPosts = []; // Store all posts for analytics
+        let viewsChart = null; // Store chart instance
+
         function listenToPosts() {
             const q = query(collection(db, "posts"), orderBy("publishAt", "desc"));
             onSnapshot(q, (snapshot) => {
+                allPosts = [];
                 managePostList.innerHTML = '';
                 if (snapshot.empty) {
                     managePostList.innerHTML = '<p>Chưa có bài viết nào.</p>';
                     return;
                 }
                 snapshot.forEach(doc => {
-                    const post = doc.data();
-                    const postEl = document.createElement('div');
-                    postEl.className = 'flex justify-between items-center bg-white p-4 rounded-lg shadow-sm';
-                    
-                    const publishDate = post.publishAt?.toDate();
-                    const isPublished = !publishDate || publishDate <= new Date();
-                    const statusClass = isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                    const statusText = isPublished ? 'Đã xuất bản' : 'Đã lên lịch';
-
-                    postEl.innerHTML = `
-                        <div>
-                            <p class="font-bold text-lg">${post.title}</p>
-                            <p class="text-sm text-gray-500">
-                                ${post.category} - 
-                                <span class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded ${statusClass}">${statusText}</span>
-                            </p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button data-id="${doc.id}" class="edit-btn bg-blue-100 text-blue-800 hover:bg-blue-200 font-semibold py-1 px-3 rounded-lg text-sm">Sửa</button>
-                            <button data-id="${doc.id}" class="delete-btn bg-red-100 text-red-800 hover:bg-red-200 font-semibold py-1 px-3 rounded-lg text-sm">Xóa</button>
-                        </div>
-                    `;
-                    managePostList.appendChild(postEl);
+                    const post = { id: doc.id, ...doc.data() };
+                    allPosts.push(post);
+                    renderPostInManager(post); // Render each post in the list
                 });
+                renderAnalytics(); // Re-render analytics with new data
             });
         }
         
+        function renderPostInManager(post) {
+            const postEl = document.createElement('div');
+            postEl.className = 'flex justify-between items-center bg-white p-4 rounded-lg shadow-sm';
+            
+            const publishDate = post.publishAt?.toDate();
+            const isPublished = !publishDate || publishDate <= new Date();
+            const statusClass = isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+            const statusText = isPublished ? 'Đã xuất bản' : 'Đã lên lịch';
+
+            postEl.innerHTML = `
+                <div>
+                    <p class="font-bold text-lg">${post.title}</p>
+                    <div class="text-sm text-gray-500 flex items-center gap-4 mt-1">
+                        <span>${post.category}</span>
+                        <span class="text-xs font-medium px-2.5 py-0.5 rounded ${statusClass}">${statusText}</span>
+                        <span class="flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                            ${post.views || 0}
+                        </span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button data-id="${post.id}" class="edit-btn bg-blue-100 text-blue-800 hover:bg-blue-200 font-semibold py-1 px-3 rounded-lg text-sm">Sửa</button>
+                    <button data-id="${post.id}" class="delete-btn bg-red-100 text-red-800 hover:bg-red-200 font-semibold py-1 px-3 rounded-lg text-sm">Xóa</button>
+                </div>
+            `;
+            managePostList.appendChild(postEl);
+        }
+        
         listenToPosts();
+
+        // --- Analytics Rendering ---
+        function renderAnalytics() {
+            const totalPostsEl = document.getElementById('total-posts');
+            const totalViewsEl = document.getElementById('total-views');
+            
+            totalPostsEl.textContent = allPosts.length;
+            const totalViews = allPosts.reduce((sum, post) => sum + (post.views || 0), 0);
+            totalViewsEl.textContent = totalViews;
+            
+            // Chart
+            const ctx = document.getElementById('viewsChart').getContext('2d');
+            const sortedPosts = [...allPosts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10); // Top 10 posts
+            const labels = sortedPosts.map(p => p.title);
+            const data = sortedPosts.map(p => p.views || 0);
+
+            if (viewsChart) {
+                viewsChart.destroy(); // Destroy old chart before creating new one
+            }
+
+            viewsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Lượt xem',
+                        data: data,
+                        backgroundColor: 'rgba(161, 98, 7, 0.2)',
+                        borderColor: 'rgba(161, 98, 7, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true } },
+                    indexAxis: 'y', // Horizontal bar chart
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
 
         // --- Manage Posts Event Listeners (Delete and Edit) ---
         managePostList.addEventListener('click', async (e) => {
@@ -388,26 +433,19 @@
                     try {
                         await deleteDoc(doc(db, 'posts', postId));
                         alert('Đã xóa bài viết.');
-                    } catch (error) {
-                        console.error('Lỗi xóa bài viết:', error);
-                        alert('Không thể xóa bài viết.');
-                    }
+                    } catch (error) { console.error('Lỗi xóa bài viết:', error); alert('Không thể xóa bài viết.'); }
                 }
             } else if (target.classList.contains('edit-btn')) {
-                // --- START EDIT ---
-                const postRef = doc(db, 'posts', postId);
-                const docSnap = await getDoc(postRef);
+                const docSnap = await getDoc(doc(db, 'posts', postId));
                 if (docSnap.exists()) {
                     const post = docSnap.data();
                     
-                    // Populate form
                     document.getElementById('edit-post-id').value = postId;
                     document.getElementById('post-title').value = post.title;
                     document.getElementById('post-category').value = post.category;
                     document.getElementById('post-excerpt').value = post.excerpt || '';
                     if (post.publishAt) {
                         const d = post.publishAt.toDate();
-                        // Format to yyyy-MM-ddThh:mm
                         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
                         document.getElementById('publish-date').value = d.toISOString().slice(0,16);
                     }
@@ -420,10 +458,9 @@
                         coverImagePreview.src = '';
                     }
 
-                    // Switch to edit mode UI
                     submitBtn.textContent = 'Cập nhật bài viết';
                     cancelEditBtn.classList.remove('hidden');
-                    tabWrite.click();
+                    tabs[0].btn.click(); // Switch to write tab
                     window.scrollTo(0, 0);
                 }
             }
@@ -443,7 +480,7 @@
             
             submitBtn.textContent = 'Xuất bản bài viết';
             cancelEditBtn.classList.add('hidden');
-            tabManage.click();
+            tabs[1].btn.click(); // Switch to manage tab
         }
 
     </script>
