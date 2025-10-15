@@ -5,21 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gác xép của Thông</title>
 
-    <!-- Meta Tags cho việc chia sẻ (Open Graph) -->
     <meta property="og:title" content="Gác xép của Thông">
     <meta property="og:description" content="Nơi Thông lưu giữ những mẩu chuyện nhỏ xinh, những suy tư vụn vặt và cả những hành trình đáng nhớ.">
     <meta property="og:image" content="https://i.ibb.co/7jXgTzD/gacxep-cover-share.png">
     <meta property="og:type" content="website">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <style>
         body {
             font-family: 'Quicksand', sans-serif;
@@ -61,13 +57,10 @@
 </head>
 <body class="antialiased">
 
-    <!-- Header Section -->
     <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-20 shadow-sm border-b border-amber-200">
         <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
-            <!-- Brand Logo -->
             <a href="index.html" class="font-handwriting text-4xl text-amber-600">Gác xép của Thông</a>
             
-            <!-- Main Navigation (Desktop) -->
             <ul class="hidden lg:flex items-center gap-2">
                 <li><a href="index.html" class="menu-item active font-semibold p-2 rounded-md hover:bg-amber-100 transition">Trang chủ</a></li>
                 <li><a href="nhat-ki.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Nhật kí</a></li>
@@ -75,12 +68,9 @@
                 <li><a href="chuyen-doi-thuong.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Chuyện đời thường</a></li>
             </ul>
 
-            <!-- Auth Section (Desktop) -->
             <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm">
-                <!-- Sẽ được cập nhật bằng JS -->
-            </div>
+                </div>
 
-            <!-- Mobile Menu Button -->
             <div class="lg:hidden">
                 <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
@@ -89,7 +79,6 @@
         </nav>
     </header>
 
-    <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden lg:hidden bg-white/95 backdrop-blur-sm shadow-lg absolute top-20 left-0 w-full z-10">
         <ul class="flex flex-col items-center gap-4 py-8">
             <li><a href="index.html" class="menu-item active p-2">Trang chủ</a></li>
@@ -98,31 +87,25 @@
             <li><a href="chuyen-doi-thuong.html" class="menu-item p-2">Chuyện đời thường</a></li>
         </ul>
         <div id="mobile-auth-container" class="border-t border-amber-100 flex flex-col items-center gap-4 py-6">
-             <!-- Mobile auth buttons will be inserted here -->
-        </div>
+             </div>
     </div>
 
-    <!-- Main Content -->
     <main class="container mx-auto p-6">
-        <!-- Welcome Section -->
-        <div class="text-center my-10">
-            <h1 class="text-4xl lg:text-5xl font-bold text-amber-900 leading-tight">Chào mừng đến với Gác xép!</h1>
-            <p class="text-lg mt-4 text-amber-800 max-w-2xl mx-auto">Nơi Thông lưu giữ những mẩu chuyện nhỏ xinh, những suy tư vụn vặt và cả những hành trình đáng nhớ.</p>
+        <div class="text-center my-10 p-8 bg-amber-50/50 border border-amber-200 rounded-xl">
+            <h1 id="dynamic-greeting" class="text-3xl lg:text-4xl font-bold text-amber-900 leading-tight">...</h1>
+            <p id="current-date" class="text-lg mt-2 text-amber-700"></p>
+            <p id="daily-quote" class="text-md mt-4 text-amber-800/80 max-w-2xl mx-auto italic">"...</p>
         </div>
         
-        <!-- Latest Posts Section -->
         <div id="post-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-            <!-- Bài viết từ Firebase sẽ hiển thị ở đây -->
             <p id="loading-message" class="text-center col-span-full text-gray-500">Đang tải những câu chuyện mới nhất...</p>
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="text-center py-8 mt-12 border-t border-amber-100">
         <p class="text-amber-800">&copy; 2025, Gác xép của Thông.</p>
     </footer>
 
-    <!-- JavaScript Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -154,19 +137,48 @@
             mobileMenu.classList.toggle('hidden');
         });
         
+        // --- NEW: Dynamic Welcome Section Logic ---
+        function updateWelcomeSection() {
+            const greetingEl = document.getElementById('dynamic-greeting');
+            const dateEl = document.getElementById('current-date');
+            const quoteEl = document.getElementById('daily-quote');
+            
+            // 1. Time-based Greeting
+            const currentHour = new Date().getHours();
+            if (currentHour < 12) {
+                greetingEl.textContent = 'Chào buổi sáng!';
+            } else if (currentHour < 18) {
+                greetingEl.textContent = 'Một buổi chiều tốt lành nhé!';
+            } else {
+                greetingEl.textContent = 'Buổi tối vui vẻ, bạn hiền!';
+            }
+            
+            // 2. Date Display
+            dateEl.textContent = new Date().toLocaleDateString('vi-VN', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            // 3. Random Quote
+            const quotes = [
+                "Mỗi ngày đều là một trang mới của cuốn sách cuộc đời.",
+                "Những câu chuyện đẹp nhất thường bắt đầu từ những điều bình dị nhất.",
+                "Hãy cất giữ những kỷ niệm đẹp như cách người ta giữ những món đồ quý giá trên gác xép.",
+                "Cuộc sống luôn có những góc nhỏ an yên, chỉ cần ta chậm lại để tìm kiếm."
+            ];
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            quoteEl.textContent = `"${quotes[randomIndex]}"`;
+        }
+
         // --- Authentication Listener ---
         onAuthStateChanged(auth, (user) => {
-            const adminEmail = 'thongtnmfct31178@gmail.com'; // Admin email
             const updateAuthUI = (container) => {
                 container.innerHTML = ''; // Clear old content
                 if (user) {
                     const displayName = user.displayName || user.email.split('@')[0];
-                    // Hiển thị Chào mừng và Đăng xuất cho tất cả user đăng nhập
-                    let html = `
+                    container.innerHTML = `
                         <span class="font-semibold text-amber-800">Chào, ${displayName}!</span>
                         <button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>
                     `;
-                    container.innerHTML = html;
                 } else {
                     container.innerHTML = `
                         <a href="auth.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Đăng nhập / Đăng ký</a>
@@ -259,12 +271,13 @@
         }
 
         // --- Initial Load ---
-        if (db) {
-            fetchAndRenderPosts();
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            updateWelcomeSection();
+            if (db) {
+                fetchAndRenderPosts();
+            }
+        });
 
     </script>
 </body>
 </html>
-
-
