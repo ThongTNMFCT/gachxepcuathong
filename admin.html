@@ -313,7 +313,7 @@
             } catch (error) { console.error('Lỗi tải ảnh lên ImgBB:', error); alert(`Lỗi tải ảnh: ${error.message}`); return null; }
         }
         
-        // --- NEW Image Insertion Logic ---
+        // --- CORRECTED Image Insertion Logic ---
         let savedRange = null;
 
         quill.getModule('toolbar').addHandler('image', () => {
@@ -342,11 +342,14 @@
             loadingSpinner.classList.add('hidden');
             
             if (imageUrl) {
-                if(savedRange) quill.setSelection(savedRange); // Restore cursor position
-                quill.insertEmbed(savedRange ? savedRange.index : quill.getLength(), 'figureImage', { src: imageUrl, caption: caption }, Quill.sources.USER);
+                quill.focus(); // Phục hồi focus cho trình soạn thảo
+                const insertIndex = savedRange ? savedRange.index : quill.getLength(); // Xác định vị trí chèn
+                
+                quill.insertEmbed(insertIndex, 'figureImage', { src: imageUrl, caption: caption }, Quill.sources.USER);
+                quill.setSelection(insertIndex + 1, Quill.sources.SILENT); // Di chuyển con trỏ đến sau ảnh
             }
             
-            cancelImageBtn.click(); // Hide and reset the inserter
+            cancelImageBtn.click(); // Ẩn và reset lại ô chèn ảnh
         });
 
         // --- Cover Image Preview ---
