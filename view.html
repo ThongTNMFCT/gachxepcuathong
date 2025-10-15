@@ -80,6 +80,14 @@
          body[data-theme="bai-viet"] .post-container {
             max-width: 48rem; /* Rộng hơn một chút cho cảm giác tạp chí */
         }
+
+        /* --- Image Slider --- */
+        .image-slider { position: relative; margin: 2rem auto; }
+        .slider-wrapper { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .slider-wrapper::-webkit-scrollbar { display: none; }
+        .slider-wrapper .image-container { flex: 0 0 100%; width: 100%; scroll-snap-align: start; }
+        .slider-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; display: flex; justify-content: space-between; padding: 0 0.5rem; pointer-events: none; }
+        .slider-nav button { pointer-events: all; background-color: rgba(255, 255, 255, 0.7); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body class="antialiased">
@@ -87,21 +95,14 @@
     <!-- Header Section -->
     <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-20 shadow-sm border-b border-amber-200">
         <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
-            <!-- Brand Logo -->
             <a href="index.html" class="font-handwriting text-4xl text-amber-600">Gác xép của Thông</a>
-            
-            <!-- Main Navigation (Desktop) -->
             <ul class="hidden lg:flex items-center gap-2">
                 <li><a href="index.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Trang chủ</a></li>
                 <li><a href="nhat-ki.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Nhật kí</a></li>
                 <li><a href="bai-viet.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Bài viết</a></li>
                 <li><a href="chuyen-doi-thuong.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Chuyện đời thường</a></li>
             </ul>
-
-            <!-- Auth Section (Desktop) -->
             <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm"></div>
-
-            <!-- Mobile Menu Button -->
             <div class="lg:hidden">
                 <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
@@ -123,7 +124,6 @@
 
     <!-- Main Content -->
     <main id="post-container" class="post-container container mx-auto p-6 max-w-4xl opacity-0 transition-opacity duration-500">
-        <!-- Post content will be loaded here -->
         <p id="loading-message" class="text-center text-gray-500 py-20">Đang mở bài viết...</p>
     </main>
 
@@ -144,24 +144,16 @@
         try { const app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); } 
         catch (e) { console.error("Firebase init error:", e); document.getElementById('post-container').innerHTML = `<p class="text-center text-red-500 py-20">Lỗi kết nối.</p>`; }
         
-        // --- DOM Elements & UI Logic ---
+        // --- UI Logic ---
         const authContainer = document.getElementById('auth-container');
         const mobileAuthContainer = document.getElementById('mobile-auth-container');
-        const menuToggle = document.getElementById('menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const progressBar = document.getElementById('progress-bar');
-
-        menuToggle.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-
-        // --- Reading Progress Bar ---
+        document.getElementById('menu-toggle').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('hidden'));
         window.addEventListener('scroll', () => {
-            const scrollTop = window.scrollY;
             const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollPercent = (scrollTop / docHeight) * 100;
-            progressBar.style.width = scrollPercent + "%";
+            document.getElementById('progress-bar').style.width = `${(window.scrollY / docHeight) * 100}%`;
         });
 
-        // --- Authentication Listener ---
+        // --- Authentication ---
         onAuthStateChanged(auth, (user) => {
             const updateAuthUI = (container) => {
                 container.innerHTML = user 
@@ -175,34 +167,100 @@
             if(postId) initializeComments(postId, user);
         });
 
-        // --- Meta Tag & Theme Updater ---
+        // --- Page Logic ---
         function applyThemeAndMeta(postData) {
-            // Theme
-            const theme = postData.category.toLowerCase().replace(/\s+/g, '-');
-            document.body.dataset.theme = theme;
-            
-            // Meta
+            document.body.dataset.theme = postData.category.toLowerCase().replace(/\s+/g, '-');
             document.querySelectorAll('meta[property^="og:"]').forEach(tag => tag.remove());
             const tags = { 'og:title': postData.title, 'og:description': postData.excerpt, 'og:image': postData.coverImageUrl, 'og:url': window.location.href, 'og:type': 'article', 'og:site_name': 'Gác xép của Thông' };
-            for (const [p, c] of Object.entries(tags)) { const m = document.createElement('meta'); m.setAttribute('property', p); m.content = c; document.head.appendChild(m); }
+            for (const [p, c] of Object.entries(tags)) { const m = document.createElement('meta'); m.setAttribute('property', p); m.content = c || `https://i.ibb.co/7jXgTzD/gacxep-cover-share.png`; document.head.appendChild(m); }
         }
 
-        // --- View Count Logic ---
         async function incrementViewCount(postId) { if (db) await updateDoc(doc(db, 'posts', postId), { views: increment(1) }).catch(e => console.warn("View count error", e)); }
 
-        // --- Image Slider Logic ---
-        function initializeImageSliders() { /* ... same as previous version ... */ }
-        function createSlider(figureGroup) { /* ... same as previous version ... */ }
+        function initializeImageSliders() {
+            const figures = Array.from(document.querySelectorAll('.post-content figure.image-container'));
+            let group = [];
+            for (let i = 0; i < figures.length; i++) {
+                (i > 0 && figures[i].previousElementSibling === figures[i - 1]) ? group.push(figures[i]) : ( (group.length > 1 && createSlider(group)), (group = [figures[i]]) );
+            }
+            if (group.length > 1) createSlider(group);
+        }
 
-        // --- Comments Logic with Replies ---
-        function initializeComments(postId, user) { /* ... same as previous version ... */ }
-        function renderComment(postId, commentDoc, user) { /* ... same as previous version ... */ }
+        function createSlider(figureGroup) {
+            const slider = document.createElement('div'); slider.className = 'image-slider';
+            const wrapper = document.createElement('div'); wrapper.className = 'slider-wrapper';
+            figureGroup[0].parentNode.insertBefore(slider, figureGroup[0]);
+            figureGroup.forEach(fig => wrapper.appendChild(fig));
+            const nav = document.createElement('div'); nav.className = 'slider-nav';
+            nav.innerHTML = `<button class="prev-btn"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><button class="next-btn"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>`;
+            slider.append(wrapper, nav);
+            nav.querySelector('.prev-btn').addEventListener('click', () => wrapper.scrollBy({ left: -wrapper.offsetWidth, behavior: 'smooth' }));
+            nav.querySelector('.next-btn').addEventListener('click', () => wrapper.scrollBy({ left: wrapper.offsetWidth, behavior: 'smooth' }));
+        }
 
-        // --- Main Fetch and Render Post ---
+        function initializeComments(postId, user) {
+            const commentsContainer = document.getElementById('comments-section');
+            if (!commentsContainer) return;
+            const commentFormContainer = document.getElementById('comment-form-container');
+            if (user) {
+                commentFormContainer.innerHTML = `<form id="comment-form"><div class="flex items-start gap-4"><img src="${user.photoURL||'https://placehold.co/40x40/fef3c7/a16207?text=B'}" alt="avatar" class="w-10 h-10 rounded-full"><textarea id="comment-text" class="w-full rounded-md border-gray-300 p-3" placeholder="Viết bình luận..." required rows="2"></textarea></div><div class="flex justify-end mt-2"><button type="submit" class="bg-amber-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-amber-700">Gửi</button></div></form>`;
+                document.getElementById('comment-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const text = document.getElementById('comment-text').value.trim();
+                    if (text) {
+                        try {
+                            await addDoc(collection(db, `posts/${postId}/comments`), { text, authorName: user.displayName || user.email, authorId: user.uid, authorPhotoURL: user.photoURL, createdAt: serverTimestamp() });
+                            document.getElementById('comment-text').value = '';
+                        } catch (error) { alert("Không thể gửi bình luận."); }
+                    }
+                });
+            } else {
+                commentFormContainer.innerHTML = `<p class="text-center bg-gray-50 p-4 rounded-lg">Vui lòng <a href="auth.html" class="text-amber-600 font-bold hover:underline">đăng nhập</a> để bình luận.</p>`;
+            }
+            onSnapshot(query(collection(db, `posts/${postId}/comments`), orderBy('createdAt', 'desc')), (snapshot) => {
+                const list = document.getElementById('comments-list');
+                list.innerHTML = snapshot.empty ? `<p class="text-center text-gray-500">Chưa có bình luận nào.</p>` : '';
+                snapshot.forEach(doc => renderComment(postId, doc, user));
+            });
+        }
+        
+        function renderComment(postId, commentDoc, user) {
+            const comment = commentDoc.data(), id = commentDoc.id, el = document.createElement('div');
+            el.className = 'flex gap-4';
+            const date = comment.createdAt ? comment.createdAt.toDate().toLocaleDateString('vi-VN') : '';
+            el.innerHTML = `<img src="${comment.authorPhotoURL||'https://placehold.co/40x40/fef3c7/a16207?text=B'}" alt="avatar" class="w-10 h-10 rounded-full mt-1"><div class="flex-1"><p class="font-bold">${comment.authorName} <span class="text-sm font-normal text-gray-400 ml-2">${date}</span></p><p class="text-gray-700">${comment.text}</p>${user ? `<button data-id="${id}" class="reply-btn text-sm font-semibold text-amber-700 hover:underline mt-1">Trả lời</button>` : ''}<div id="reply-form-${id}" class="hidden mt-2"></div><div id="replies-${id}" class="mt-4 space-y-4 border-l-2 pl-4"></div></div>`;
+            document.getElementById('comments-list').appendChild(el);
+
+            onSnapshot(query(collection(db, `posts/${postId}/comments/${id}/replies`), orderBy('createdAt', 'asc')), (snapshot) => {
+                const container = document.getElementById(`replies-${id}`);
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const reply = doc.data(), replyEl = document.createElement('div');
+                    replyEl.className = 'flex gap-3';
+                    replyEl.innerHTML = `<img src="${reply.authorPhotoURL||'https://placehold.co/32x32/fef3c7/a16207?text=B'}" alt="avatar" class="w-8 h-8 rounded-full mt-1"><div><p class="font-bold text-sm">${reply.authorName} <span class="text-xs font-normal text-gray-400 ml-1">${reply.createdAt?.toDate().toLocaleDateString('vi-VN')}</span></p><p class="text-gray-600 text-sm">${reply.text}</p></div>`;
+                    container.appendChild(replyEl);
+                });
+            });
+
+            const replyBtn = el.querySelector('.reply-btn');
+            if(replyBtn) replyBtn.addEventListener('click', () => {
+                const formContainer = document.getElementById(`reply-form-${id}`);
+                if (formContainer.classList.toggle('hidden')) return;
+                formContainer.innerHTML = `<form class="reply-form"><textarea class="w-full rounded-md border-gray-300 text-sm p-2" placeholder="Viết trả lời..." required rows="1"></textarea><div class="flex justify-end gap-2 mt-1"><button type="button" class="cancel-reply text-xs font-semibold">Hủy</button><button type="submit" class="bg-amber-600 text-white font-bold py-1 px-3 rounded-md text-xs">Gửi</button></div></form>`;
+                formContainer.querySelector('.cancel-reply').addEventListener('click', () => formContainer.classList.add('hidden'));
+                formContainer.querySelector('.reply-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const text = e.target.querySelector('textarea').value.trim();
+                    if(text) try { await addDoc(collection(db, `posts/${postId}/comments/${id}/replies`), { text, authorName: user.displayName||user.email, authorId: user.uid, authorPhotoURL: user.photoURL, createdAt: serverTimestamp() }); formContainer.classList.add('hidden'); } catch (error) { alert("Không thể gửi trả lời."); }
+                });
+            });
+        }
+
+        // --- Main Post Loader ---
         async function fetchAndRenderPost() {
-            const postContainer = document.getElementById('post-container');
+            const container = document.getElementById('post-container');
             const postId = new URLSearchParams(window.location.search).get('id');
-            if (!db || !postId) { postContainer.innerHTML = `<h1 class="text-center text-2xl font-bold py-20">Không tìm thấy bài viết.</h1>`; return; }
+            if (!db || !postId) { container.innerHTML = `<h1 class="text-center py-20">Không tìm thấy bài viết.</h1>`; return; }
             
             incrementViewCount(postId);
 
@@ -211,48 +269,41 @@
                 if (docSnap.exists()) {
                     const post = docSnap.data();
                     applyThemeAndMeta(post);
-                    const publishDate = post.publishAt.toDate().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const date = post.publishAt.toDate().toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
                     document.title = `${post.title} - Gác xép của Thông`;
-
-                    document.querySelectorAll('.menu-item').forEach(item => {
-                        item.classList.remove('active');
-                        if (item.textContent.trim().toLowerCase() === post.category.trim().toLowerCase()) item.classList.add('active');
-                    });
-                    
-                    // Reading time calculation
+                    document.querySelectorAll('.menu-item').forEach(i => { i.classList.remove('active'); if(i.textContent.trim().toLowerCase() === post.category.trim().toLowerCase()) i.classList.add('active'); });
                     const words = post.content.replace(/<[^>]+>/g, '').split(/\s+/).length;
-                    const readingTime = Math.ceil(words / 200);
+                    const time = Math.ceil(words / 200);
 
-                    postContainer.innerHTML = `
+                    container.innerHTML = `
                         <article>
-                            <header class="post-hero rounded-xl overflow-hidden text-white p-8 md:p-16 flex flex-col justify-center items-center text-center min-h-[40vh]" style="background-image: url('${post.coverImageUrl || ''}')">
-                                <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">${post.category}</span>
-                                <h1 class="text-3xl md:text-5xl font-bold mt-4 leading-tight">${post.title}</h1>
-                                <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4 opacity-80">
-                                    <span>${publishDate}</span>
-                                    <span class="flex items-center gap-1"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>${post.views || 0}</span>
-                                    <span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>Khoảng ${readingTime} phút đọc</span>
+                            <header class="post-hero rounded-xl text-white p-8 md:p-16 flex flex-col justify-center items-center text-center min-h-[40vh]" style="background-image: url('${post.coverImageUrl||''}')">
+                                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">${post.category}</span>
+                                <h1 class="text-3xl md:text-5xl font-bold mt-4">${post.title}</h1>
+                                <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4 opacity-80">
+                                    <span>${date}</span>
+                                    <span class="flex items-center gap-1"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" /></svg>${post.views||0}</span>
+                                    <span class="flex items-center gap-1"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>Khoảng ${time} phút đọc</span>
                                 </div>
                             </header>
-                            <div class="post-content text-lg text-gray-800 mt-8 md:mt-12 bg-white p-6 md:p-8 rounded-xl shadow-sm">${post.content}</div>
+                            <div class="post-content text-lg mt-8 md:mt-12 bg-white p-6 md:p-8 rounded-xl shadow-sm">${post.content}</div>
                         </article>
                         <div id="comments-section" class="mt-12 bg-white p-6 md:p-8 rounded-xl shadow-sm">
                             <h2 class="text-2xl font-bold text-amber-900 mb-6">Bình luận</h2>
                             <div id="comment-form-container" class="mb-8"></div>
                             <div id="comments-list" class="space-y-8"></div>
-                        </div>
-                    `;
-                    postContainer.classList.remove('opacity-0'); // Fade in content
+                        </div>`;
+                    container.classList.remove('opacity-0');
                     initializeImageSliders();
                     initializeComments(postId, auth.currentUser);
                 } else {
-                    postContainer.innerHTML = `<h1 class="text-center text-2xl font-bold py-20">Bài viết không tồn tại.</h1>`;
-                    postContainer.classList.remove('opacity-0');
+                    container.innerHTML = `<h1 class="text-center py-20">Bài viết không tồn tại.</h1>`;
+                    container.classList.remove('opacity-0');
                 }
             } catch (error) {
                 console.error("Error loading post: ", error);
-                postContainer.innerHTML = `<p class="text-center text-red-500 py-20">Không thể tải bài viết.</p>`;
-                postContainer.classList.remove('opacity-0');
+                container.innerHTML = `<p class="text-center text-red-500 py-20">Không thể tải bài viết.</p>`;
+                container.classList.remove('opacity-0');
             }
         }
         fetchAndRenderPost();
