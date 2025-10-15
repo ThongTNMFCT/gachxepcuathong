@@ -289,6 +289,43 @@
             return title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
         }
 
+        // --- MODIFIED: Image Compression Function ---
+        function compressImage(file, maxWidth = 1000, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            resolve(new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            }));
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
+        }
+
         // --- Image Upload Function ---
         async function uploadImageToImgBB(file) {
             if (!IMGBB_API_KEY || IMGBB_API_KEY === 'DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY') {
@@ -308,17 +345,18 @@
             }
         }
         
-        // --- NEW: Custom Image Handler for Toolbar & Paste ---
+        // --- MODIFIED: Custom Image Handler for Toolbar & Paste ---
         async function insertImages(files) {
             loadingSpinner.classList.remove('hidden');
             const range = quill.getSelection(true);
             let insertIndex = range.index;
 
             for (const file of files) {
-                const imageUrl = await uploadImageToImgBB(file);
+                const compressedFile = await compressImage(file); // Compress before upload
+                const imageUrl = await uploadImageToImgBB(compressedFile);
                 if (imageUrl) {
                     quill.insertEmbed(insertIndex, 'figureImage', imageUrl, Quill.sources.USER);
-                    insertIndex++; // Move to the next position after the inserted image
+                    insertIndex++; 
                 }
             }
             quill.setSelection(insertIndex, Quill.sources.SILENT);
@@ -329,7 +367,7 @@
              const input = document.createElement('input');
              input.setAttribute('type', 'file');
              input.setAttribute('accept', 'image/*');
-             input.setAttribute('multiple', true); // Allow multiple files
+             input.setAttribute('multiple', true);
              input.click();
              input.onchange = () => insertImages(input.files);
         });
@@ -373,7 +411,8 @@
 
             let coverImageUrl = coverImagePreview.src;
             if (coverImageFile) {
-                coverImageUrl = await uploadImageToImgBB(coverImageFile);
+                const compressedCoverFile = await compressImage(coverImageFile, 1200, 0.85); // Compress cover image
+                coverImageUrl = await uploadImageToImgBB(compressedCoverFile);
                 if (!coverImageUrl) { loadingSpinner.classList.add('hidden'); submitBtn.disabled = false; return; }
             }
             
