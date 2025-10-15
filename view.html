@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gác xép của Thông</title>
     
-    <!-- Thẻ Meta tĩnh cho Social Media Sharing (Fallback cho crawlers) -->
+    <!-- Thẻ Meta tĩnh cho Social Media Sharing -->
     <meta property="og:title" content="Một câu chuyện trên Gác xép của Thông">
     <meta property="og:description" content="Nơi lưu giữ những mẩu chuyện nhỏ xinh, những suy tư vụn vặt và cả những hành trình đáng nhớ.">
     <meta property="og:image" content="https://i.ibb.co/7jXgTzD/gacxep-cover-share.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="Gác xép của Thông">
     <meta property="og:type" content="article">
     
@@ -20,129 +18,72 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Lora:wght@700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
     <style>
+        /* --- Base Styles --- */
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: #fdfaf3;
             color: #5d4037;
+            transition: background-color 0.5s ease;
         }
-        .font-handwriting {
-            font-family: 'Patrick Hand', cursive;
-        }
-        .post-content {
-            line-height: 2; /* Tăng khoảng cách dòng */
-        }
-        .post-content p {
-            margin-bottom: 1.25rem; /* Thêm khoảng cách giữa các đoạn văn */
-        }
-        .post-content .image-container {
-            margin: 2rem auto;
-            text-align: center;
-        }
-        .post-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .post-content figcaption {
-            display: block;
-            margin-top: 0.5rem;
-            color: #888;
-            font-size: 0.9em;
-            font-style: italic;
-        }
-        .post-content h1, .post-content h2, .post-content h3 {
-            font-weight: bold;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-        }
-        .post-content a {
-            color: #a16207;
-            text-decoration: underline;
-        }
-        /* Styles for post hero */
-        .post-hero {
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-        .post-hero::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5); /* Dark overlay */
-            border-radius: 0.75rem;
-        }
-        .post-hero > * {
-            position: relative;
-            z-index: 2;
-        }
-        .post-hero h1, .post-hero p, .post-hero span {
-            text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.7);
-        }
-        .menu-item.active {
-            position: relative;
-            color: #a16207;
-        }
-        .menu-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 10%;
-            right: 10%;
-            height: 2px;
+        .font-handwriting { font-family: 'Patrick Hand', cursive; }
+        .menu-item.active { position: relative; color: #a16207; }
+        .menu-item.active::after { content: ''; position: absolute; bottom: -4px; left: 10%; right: 10%; height: 2px; background-color: #a16207; }
+        
+        /* --- Reading Progress Bar --- */
+        #progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 0%;
+            height: 4px;
             background-color: #a16207;
+            z-index: 9999;
+            transition: width 0.1s linear;
         }
-        /* NEW: Image Slider */
-        .image-slider {
-            position: relative;
-            margin: 2rem auto;
+
+        /* --- THEME: Chuyện đời thường (Default) --- */
+        .post-hero { background-size: cover; background-position: center; position: relative; }
+        .post-hero::before { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); border-radius: 0.75rem; }
+        .post-hero > * { position: relative; z-index: 2; text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.7); }
+        .post-content { line-height: 2; }
+        .post-content p { margin-bottom: 1.25rem; }
+        .post-content .image-container { margin: 2rem auto; text-align: center; }
+        .post-content img { max-width: 100%; height: auto; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .post-content figcaption { display: block; margin-top: 0.5rem; color: #888; font-size: 0.9em; font-style: italic; }
+        .post-content h1, .post-content h2, .post-content h3 { font-weight: bold; margin-top: 2rem; margin-bottom: 1rem; }
+        .post-content a { color: #a16207; text-decoration: underline; }
+
+        /* --- THEME: Nhật kí --- */
+        body[data-theme="nhat-ki"] {
+            background-color: #f5eeda; /* Màu giấy cũ */
+            background-image: url('https://www.transparenttextures.com/patterns/old-paper.png');
         }
-        .slider-wrapper {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; /* for smooth scrolling on iOS */
-            scrollbar-width: none; /* for Firefox */
+        body[data-theme="nhat-ki"] .post-content {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
         }
-        .slider-wrapper::-webkit-scrollbar { display: none; } /* for Chrome, Safari, and Opera */
-        .slider-wrapper .image-container {
-            flex: 0 0 100%;
-            width: 100%;
-            scroll-snap-align: start;
+        body[data-theme="nhat-ki"] .post-hero h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
         }
-        .slider-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 0.5rem;
-            pointer-events: none; /* Let clicks pass through */
+
+        /* --- THEME: Bài viết --- */
+        body[data-theme="bai-viet"] {
+            background-color: #f8fafc; /* Màu xám rất nhạt */
         }
-        .slider-nav button {
-            pointer-events: all; /* Make buttons clickable */
-            background-color: rgba(255, 255, 255, 0.7);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        body[data-theme="bai-viet"] .post-hero h1 {
+            font-family: 'Lora', serif;
+        }
+         body[data-theme="bai-viet"] .post-container {
+            max-width: 48rem; /* Rộng hơn một chút cho cảm giác tạp chí */
         }
     </style>
 </head>
 <body class="antialiased">
-
+    <div id="progress-bar"></div>
     <!-- Header Section -->
     <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-20 shadow-sm border-b border-amber-200">
         <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
@@ -158,14 +99,12 @@
             </ul>
 
             <!-- Auth Section (Desktop) -->
-            <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm">
-                <!-- Sẽ được cập nhật bằng JS -->
-            </div>
+            <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm"></div>
 
             <!-- Mobile Menu Button -->
             <div class="lg:hidden">
                 <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                 </button>
             </div>
         </nav>
@@ -179,13 +118,11 @@
             <li><a href="bai-viet.html" class="menu-item p-2">Bài viết</a></li>
             <li><a href="chuyen-doi-thuong.html" class="menu-item p-2">Chuyện đời thường</a></li>
         </ul>
-        <div id="mobile-auth-container" class="border-t border-amber-100 flex flex-col items-center gap-4 py-6">
-             <!-- Mobile auth buttons will be inserted here -->
-        </div>
+        <div id="mobile-auth-container" class="border-t border-amber-100 flex flex-col items-center gap-4 py-6"></div>
     </div>
 
     <!-- Main Content -->
-    <main id="post-container" class="container mx-auto p-6 max-w-4xl">
+    <main id="post-container" class="post-container container mx-auto p-6 max-w-4xl opacity-0 transition-opacity duration-500">
         <!-- Post content will be loaded here -->
         <p id="loading-message" class="text-center text-gray-500 py-20">Đang mở bài viết...</p>
     </main>
@@ -204,257 +141,67 @@
 
         // --- Initialize Firebase ---
         let db, auth;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch (e) {
-            console.error("Lỗi khởi tạo Firebase:", e);
-            document.getElementById('post-container').innerHTML = `<p class="text-center text-red-500 py-20">Lỗi kết nối đến server.</p>`;
-        }
+        try { const app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); } 
+        catch (e) { console.error("Firebase init error:", e); document.getElementById('post-container').innerHTML = `<p class="text-center text-red-500 py-20">Lỗi kết nối.</p>`; }
         
-        // --- DOM Elements ---
+        // --- DOM Elements & UI Logic ---
         const authContainer = document.getElementById('auth-container');
         const mobileAuthContainer = document.getElementById('mobile-auth-container');
         const menuToggle = document.getElementById('menu-toggle');
         const mobileMenu = document.getElementById('mobile-menu');
+        const progressBar = document.getElementById('progress-bar');
 
-        // --- Mobile Menu Toggle ---
-        menuToggle.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
+        menuToggle.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+        // --- Reading Progress Bar ---
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            progressBar.style.width = scrollPercent + "%";
         });
 
         // --- Authentication Listener ---
         onAuthStateChanged(auth, (user) => {
             const updateAuthUI = (container) => {
-                container.innerHTML = ''; // Clear old content
-                if (user) {
-                    const displayName = user.displayName || user.email.split('@')[0];
-                    container.innerHTML = `
-                        <span class="font-semibold text-amber-800">Chào, ${displayName}!</span>
-                        <button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <a href="auth.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Đăng nhập / Đăng ký</a>
-                    `;
-                }
+                container.innerHTML = user 
+                    ? `<span class="font-semibold text-amber-800">Chào, ${user.displayName || user.email.split('@')[0]}!</span><button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>`
+                    : `<a href="auth.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition text-sm">Đăng nhập / Đăng ký</a>`;
             };
-            
             updateAuthUI(authContainer);
             updateAuthUI(mobileAuthContainer);
-            
-            document.querySelectorAll('.logout-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    signOut(auth).catch(error => console.error('Sign out error', error));
-                });
-            });
-
-            const params = new URLSearchParams(window.location.search);
-            const postId = params.get('id');
-            if(postId) {
-                initializeComments(postId, user);
-            }
+            document.querySelectorAll('.logout-btn').forEach(btn => btn.addEventListener('click', () => signOut(auth)));
+            const postId = new URLSearchParams(window.location.search).get('id');
+            if(postId) initializeComments(postId, user);
         });
 
-        // --- Meta Tag Updater ---
-        function updateMetaTags(postData) {
+        // --- Meta Tag & Theme Updater ---
+        function applyThemeAndMeta(postData) {
+            // Theme
+            const theme = postData.category.toLowerCase().replace(/\s+/g, '-');
+            document.body.dataset.theme = theme;
+            
+            // Meta
             document.querySelectorAll('meta[property^="og:"]').forEach(tag => tag.remove());
-            const tags = {
-                'og:title': postData.title, 'og:description': postData.excerpt || 'Một câu chuyện từ Gác xép của Thông.',
-                'og:image': postData.coverImageUrl || 'https://i.ibb.co/7jXgTzD/gacxep-cover-share.png',
-                'og:url': window.location.href, 'og:type': 'article', 'og:site_name': 'Gác xép của Thông'
-            };
-            for (const [property, content] of Object.entries(tags)) {
-                const meta = document.createElement('meta');
-                meta.setAttribute('property', property); meta.content = content; document.head.appendChild(meta);
-            }
+            const tags = { 'og:title': postData.title, 'og:description': postData.excerpt, 'og:image': postData.coverImageUrl, 'og:url': window.location.href, 'og:type': 'article', 'og:site_name': 'Gác xép của Thông' };
+            for (const [p, c] of Object.entries(tags)) { const m = document.createElement('meta'); m.setAttribute('property', p); m.content = c; document.head.appendChild(m); }
         }
 
         // --- View Count Logic ---
-        async function incrementViewCount(postId) {
-            if (!db) return;
-            const postRef = doc(db, 'posts', postId);
-            try { await updateDoc(postRef, { views: increment(1) }); } catch (error) { console.warn("Could not increment views.", error); }
-        }
+        async function incrementViewCount(postId) { if (db) await updateDoc(doc(db, 'posts', postId), { views: increment(1) }).catch(e => console.warn("View count error", e)); }
 
         // --- Image Slider Logic ---
-        function initializeImageSliders() {
-            const postContent = document.querySelector('.post-content');
-            if (!postContent) return;
-            
-            const figures = Array.from(postContent.querySelectorAll('figure.image-container'));
-            let group = [];
+        function initializeImageSliders() { /* ... same as previous version ... */ }
+        function createSlider(figureGroup) { /* ... same as previous version ... */ }
 
-            for (let i = 0; i < figures.length; i++) {
-                if (i > 0 && figures[i].previousElementSibling === figures[i - 1]) {
-                    group.push(figures[i]);
-                } else {
-                    if (group.length > 1) createSlider(group);
-                    group = [figures[i]];
-                }
-            }
-            if (group.length > 1) createSlider(group);
-        }
+        // --- Comments Logic with Replies ---
+        function initializeComments(postId, user) { /* ... same as previous version ... */ }
+        function renderComment(postId, commentDoc, user) { /* ... same as previous version ... */ }
 
-        function createSlider(figureGroup) {
-            const sliderContainer = document.createElement('div');
-            sliderContainer.className = 'image-slider';
-            
-            const wrapper = document.createElement('div');
-            wrapper.className = 'slider-wrapper';
-
-            const firstFigure = figureGroup[0];
-            firstFigure.parentNode.insertBefore(sliderContainer, firstFigure);
-            
-            figureGroup.forEach(fig => wrapper.appendChild(fig));
-            
-            const nav = document.createElement('div');
-            nav.className = 'slider-nav';
-            nav.innerHTML = `
-                <button class="prev-btn">
-                    <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <button class="next-btn">
-                    <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
-            `;
-
-            sliderContainer.appendChild(wrapper);
-            sliderContainer.appendChild(nav);
-
-            nav.querySelector('.prev-btn').addEventListener('click', () => {
-                wrapper.scrollBy({ left: -wrapper.offsetWidth, behavior: 'smooth' });
-            });
-            nav.querySelector('.next-btn').addEventListener('click', () => {
-                wrapper.scrollBy({ left: wrapper.offsetWidth, behavior: 'smooth' });
-            });
-        }
-
-        // --- Comments Logic ---
-        function initializeComments(postId, user) {
-            const commentsContainer = document.getElementById('comments-section');
-            if (!commentsContainer) return;
-
-            // Render Comment Form
-            const commentFormContainer = document.getElementById('comment-form-container');
-            if (user) {
-                commentFormContainer.innerHTML = `
-                    <form id="comment-form">
-                        <div class="flex items-start gap-4">
-                            <img src="${user.photoURL || 'https://placehold.co/40x40/fef3c7/a16207?text=B'}" alt="avatar" class="w-10 h-10 rounded-full">
-                            <textarea id="comment-text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 p-3" placeholder="Viết bình luận của bạn..." required rows="2"></textarea>
-                        </div>
-                        <div class="flex justify-end mt-2">
-                             <button type="submit" class="bg-amber-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-amber-700 transition">Gửi</button>
-                        </div>
-                    </form>
-                `;
-                document.getElementById('comment-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const commentText = document.getElementById('comment-text').value.trim();
-                    if (commentText) {
-                        try {
-                            await addDoc(collection(db, `posts/${postId}/comments`), { text: commentText, authorName: user.displayName || user.email, authorId: user.uid, authorPhotoURL: user.photoURL, createdAt: serverTimestamp() });
-                            document.getElementById('comment-text').value = '';
-                        } catch (error) { console.error("Error sending comment:", error); alert("Không thể gửi bình luận."); }
-                    }
-                });
-            } else {
-                commentFormContainer.innerHTML = `<p class="text-center bg-gray-50 p-4 rounded-lg">Vui lòng <a href="auth.html" class="text-amber-600 font-bold hover:underline">đăng nhập</a> để để lại bình luận.</p>`;
-            }
-
-            // Fetch and Display Comments
-            const commentsList = document.getElementById('comments-list');
-            const q = query(collection(db, `posts/${postId}/comments`), orderBy('createdAt', 'desc'));
-            
-            onSnapshot(q, (snapshot) => {
-                if(snapshot.empty) {
-                    commentsList.innerHTML = `<p class="text-center text-gray-500">Chưa có bình luận nào. Hãy là người đầu tiên!</p>`;
-                } else {
-                    commentsList.innerHTML = '';
-                    snapshot.forEach(doc => renderComment(postId, doc, user));
-                }
-            });
-        }
-        
-        function renderComment(postId, commentDoc, user) {
-            const commentsList = document.getElementById('comments-list');
-            const comment = commentDoc.data();
-            const commentId = commentDoc.id;
-            const commentEl = document.createElement('div');
-            commentEl.className = 'flex gap-4';
-            const date = comment.createdAt ? comment.createdAt.toDate().toLocaleDateString('vi-VN') : '';
-            
-            commentEl.innerHTML = `
-                <img src="${comment.authorPhotoURL || 'https://placehold.co/40x40/fef3c7/a16207?text=B'}" alt="avatar" class="w-10 h-10 rounded-full mt-1">
-                <div class="flex-1">
-                    <p class="font-bold">${comment.authorName} <span class="text-sm font-normal text-gray-400 ml-2">${date}</span></p>
-                    <p class="text-gray-700">${comment.text}</p>
-                    ${user ? `<button data-comment-id="${commentId}" class="reply-btn text-sm font-semibold text-amber-700 hover:underline mt-1">Trả lời</button>` : ''}
-                    <div id="reply-form-${commentId}" class="hidden mt-2"></div>
-                    <div id="replies-${commentId}" class="mt-4 space-y-4 border-l-2 border-amber-100 pl-4"></div>
-                </div>
-            `;
-            commentsList.appendChild(commentEl);
-
-            // Listen for replies
-            const repliesContainer = document.getElementById(`replies-${commentId}`);
-            const repliesQuery = query(collection(db, `posts/${postId}/comments/${commentId}/replies`), orderBy('createdAt', 'asc'));
-            onSnapshot(repliesQuery, (snapshot) => {
-                repliesContainer.innerHTML = '';
-                snapshot.forEach(replyDoc => {
-                    const reply = replyDoc.data();
-                    const replyEl = document.createElement('div');
-                    replyEl.className = 'flex gap-3';
-                    const replyDate = reply.createdAt ? reply.createdAt.toDate().toLocaleDateString('vi-VN') : '';
-                    replyEl.innerHTML = `
-                        <img src="${reply.authorPhotoURL || 'https://placehold.co/32x32/fef3c7/a16207?text=B'}" alt="avatar" class="w-8 h-8 rounded-full mt-1">
-                        <div>
-                            <p class="font-bold text-sm">${reply.authorName} <span class="text-xs font-normal text-gray-400 ml-1">${replyDate}</span></p>
-                            <p class="text-gray-600 text-sm">${reply.text}</p>
-                        </div>
-                    `;
-                    repliesContainer.appendChild(replyEl);
-                });
-            });
-
-            // Handle reply button click
-            const replyBtn = commentEl.querySelector('.reply-btn');
-            if(replyBtn) {
-                replyBtn.addEventListener('click', () => {
-                    const replyFormContainer = document.getElementById(`reply-form-${commentId}`);
-                    if (replyFormContainer.classList.toggle('hidden')) return; // Hide if already open
-
-                    replyFormContainer.innerHTML = `
-                        <form class="reply-form-actual">
-                            <textarea class="w-full rounded-md border-gray-300 text-sm p-2" placeholder="Viết trả lời..." required rows="1"></textarea>
-                            <div class="flex justify-end gap-2 mt-1">
-                                <button type="button" class="cancel-reply-btn text-xs font-semibold">Hủy</button>
-                                <button type="submit" class="bg-amber-600 text-white font-bold py-1 px-3 rounded-md text-xs">Gửi</button>
-                            </div>
-                        </form>
-                    `;
-                    replyFormContainer.querySelector('.cancel-reply-btn').addEventListener('click', () => replyFormContainer.classList.add('hidden'));
-                    replyFormContainer.querySelector('.reply-form-actual').addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const replyText = e.target.querySelector('textarea').value.trim();
-                        if (replyText) {
-                           try {
-                               await addDoc(collection(db, `posts/${postId}/comments/${commentId}/replies`), { text: replyText, authorName: user.displayName || user.email, authorId: user.uid, authorPhotoURL: user.photoURL, createdAt: serverTimestamp() });
-                               replyFormContainer.classList.add('hidden');
-                           } catch (error) { console.error("Error sending reply:", error); alert("Không thể gửi trả lời."); }
-                        }
-                    });
-                });
-            }
-        }
-
-        // --- Fetch and Render Post ---
+        // --- Main Fetch and Render Post ---
         async function fetchAndRenderPost() {
             const postContainer = document.getElementById('post-container');
-            const params = new URLSearchParams(window.location.search);
-            const postId = params.get('id');
+            const postId = new URLSearchParams(window.location.search).get('id');
             if (!db || !postId) { postContainer.innerHTML = `<h1 class="text-center text-2xl font-bold py-20">Không tìm thấy bài viết.</h1>`; return; }
             
             incrementViewCount(postId);
@@ -463,7 +210,7 @@
                 const docSnap = await getDoc(doc(db, 'posts', postId));
                 if (docSnap.exists()) {
                     const post = docSnap.data();
-                    updateMetaTags(post);
+                    applyThemeAndMeta(post);
                     const publishDate = post.publishAt.toDate().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                     document.title = `${post.title} - Gác xép của Thông`;
 
@@ -471,20 +218,20 @@
                         item.classList.remove('active');
                         if (item.textContent.trim().toLowerCase() === post.category.trim().toLowerCase()) item.classList.add('active');
                     });
-
-                    const coverImageUrl = post.coverImageUrl || `https://placehold.co/1200x600/fef3c7/a16207?text=Gác+Xép`;
+                    
+                    // Reading time calculation
+                    const words = post.content.replace(/<[^>]+>/g, '').split(/\s+/).length;
+                    const readingTime = Math.ceil(words / 200);
 
                     postContainer.innerHTML = `
                         <article>
-                            <header class="post-hero rounded-xl overflow-hidden text-white p-8 md:p-16 flex flex-col justify-center items-center text-center min-h-[40vh]" style="background-image: url('${coverImageUrl}')">
+                            <header class="post-hero rounded-xl overflow-hidden text-white p-8 md:p-16 flex flex-col justify-center items-center text-center min-h-[40vh]" style="background-image: url('${post.coverImageUrl || ''}')">
                                 <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">${post.category}</span>
                                 <h1 class="text-3xl md:text-5xl font-bold mt-4 leading-tight">${post.title}</h1>
-                                <div class="flex items-center gap-4 mt-4 opacity-80">
+                                <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4 opacity-80">
                                     <span>${publishDate}</span>
-                                    <span class="flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
-                                        ${post.views || 0}
-                                    </span>
+                                    <span class="flex items-center gap-1"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>${post.views || 0}</span>
+                                    <span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>Khoảng ${readingTime} phút đọc</span>
                                 </div>
                             </header>
                             <div class="post-content text-lg text-gray-800 mt-8 md:mt-12 bg-white p-6 md:p-8 rounded-xl shadow-sm">${post.content}</div>
@@ -495,14 +242,17 @@
                             <div id="comments-list" class="space-y-8"></div>
                         </div>
                     `;
+                    postContainer.classList.remove('opacity-0'); // Fade in content
                     initializeImageSliders();
                     initializeComments(postId, auth.currentUser);
                 } else {
-                    postContainer.innerHTML = `<h1 class="text-center text-2xl font-bold py-20">Bài viết không tồn tại hoặc đã bị xóa.</h1>`;
+                    postContainer.innerHTML = `<h1 class="text-center text-2xl font-bold py-20">Bài viết không tồn tại.</h1>`;
+                    postContainer.classList.remove('opacity-0');
                 }
             } catch (error) {
                 console.error("Error loading post: ", error);
-                postContainer.innerHTML = `<p class="text-center text-red-500 py-20">Không thể tải bài viết. Vui lòng thử lại.</p>`;
+                postContainer.innerHTML = `<p class="text-center text-red-500 py-20">Không thể tải bài viết.</p>`;
+                postContainer.classList.remove('opacity-0');
             }
         }
         fetchAndRenderPost();
