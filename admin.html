@@ -45,6 +45,28 @@
             color: #a16207;
             background-color: #fef3c7;
         }
+        /* --- NEW: Image Caption Styling --- */
+        .ql-editor .image-container {
+            margin: 1rem auto;
+            text-align: center;
+        }
+        .ql-editor .image-container img {
+            max-width: 100%;
+            border-radius: 0.5rem;
+        }
+        .ql-editor .image-container figcaption {
+            display: block;
+            margin-top: 0.5rem;
+            color: #888;
+            font-size: 0.9em;
+            font-style: italic;
+            outline: none;
+        }
+        .ql-editor .image-container figcaption[data-placeholder]:empty::before {
+            content: attr(data-placeholder);
+            color: #aaa;
+            cursor: text;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -108,7 +130,7 @@
                     <div>
                         <label class="block text-lg font-medium text-amber-900">Nội dung</label>
                         <div id="editor" class="mt-1 bg-white rounded-md"></div>
-                        <p class="text-sm text-gray-500 mt-1">Mẹo: Bạn có thể dán ảnh trực tiếp vào khung soạn thảo.</p>
+                        <p class="text-sm text-gray-500 mt-1">Mẹo: Bạn có thể chọn nhiều ảnh, hoặc dán ảnh trực tiếp vào khung soạn thảo.</p>
                     </div>
                     
                     <div>
@@ -172,7 +194,43 @@
             console.error("Lỗi khởi tạo Firebase:", e);
             alert("Không thể kết nối đến Firebase!");
         }
+        
+        // --- NEW: Custom Image Blot with Caption for Quill ---
+        const BlockEmbed = Quill.import('blots/block/embed');
 
+        class FigureImageBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create();
+                node.setAttribute('class', 'image-container');
+
+                const img = document.createElement('img');
+                img.setAttribute('src', typeof value === 'string' ? value : value.src);
+                if (value.alt) img.setAttribute('alt', value.alt);
+                
+                const figcaption = document.createElement('figcaption');
+                figcaption.setAttribute('contenteditable', 'true');
+                figcaption.setAttribute('data-placeholder', 'Nhập mô tả ảnh...');
+                if (value.caption) figcaption.innerText = value.caption;
+
+                node.appendChild(img);
+                node.appendChild(figcaption);
+                return node;
+            }
+
+            static value(node) {
+                const img = node.querySelector('img');
+                const figcaption = node.querySelector('figcaption');
+                return {
+                    src: img.getAttribute('src'),
+                    alt: img.getAttribute('alt'),
+                    caption: figcaption.innerText || ''
+                };
+            }
+        }
+        FigureImageBlot.blotName = 'figureImage';
+        FigureImageBlot.tagName = 'figure';
+        Quill.register(FigureImageBlot);
+        
         // --- Quill Editor Setup ---
         const quill = new Quill('#editor', {
             theme: 'snow',
@@ -249,24 +307,40 @@
                 return null;
             }
         }
+        
+        // --- NEW: Custom Image Handler for Toolbar & Paste ---
+        async function insertImages(files) {
+            loadingSpinner.classList.remove('hidden');
+            const range = quill.getSelection(true);
+            let insertIndex = range.index;
 
-        // --- Handle Image Pasting into Quill & Toolbar ---
+            for (const file of files) {
+                const imageUrl = await uploadImageToImgBB(file);
+                if (imageUrl) {
+                    quill.insertEmbed(insertIndex, 'figureImage', imageUrl, Quill.sources.USER);
+                    insertIndex++; // Move to the next position after the inserted image
+                }
+            }
+            quill.setSelection(insertIndex, Quill.sources.SILENT);
+            loadingSpinner.classList.add('hidden');
+        }
+
         quill.getModule('toolbar').addHandler('image', () => {
              const input = document.createElement('input');
              input.setAttribute('type', 'file');
              input.setAttribute('accept', 'image/*');
+             input.setAttribute('multiple', true); // Allow multiple files
              input.click();
-             input.onchange = async () => {
-                 const file = input.files[0];
-                 if (file) {
-                     loadingSpinner.classList.remove('hidden');
-                     const imageUrl = await uploadImageToImgBB(file);
-                     if (imageUrl) quill.insertEmbed(quill.getSelection(true).index, 'image', imageUrl);
-                     loadingSpinner.classList.add('hidden');
-                 }
-             };
+             input.onchange = () => insertImages(input.files);
         });
         
+        quill.root.addEventListener('paste', (e) => {
+            if (e.clipboardData && e.clipboardData.files.length) {
+                e.preventDefault();
+                insertImages(e.clipboardData.files);
+            }
+        });
+
         // --- Cover Image Preview ---
         const coverImageUpload = document.getElementById('cover-image-upload');
         const coverImagePreview = document.getElementById('cover-image-preview');
@@ -316,7 +390,7 @@
                     await setDoc(doc(db, 'posts', createSlug(title)), postData);
                     alert('Đăng bài viết thành công!');
                     postForm.reset();
-                    quill.setText('');
+                    quill.setContents([]);
                     coverImagePreview.classList.add('hidden');
                     coverImagePreview.src = '';
                 }
@@ -391,34 +465,17 @@
             const totalViews = allPosts.reduce((sum, post) => sum + (post.views || 0), 0);
             totalViewsEl.textContent = totalViews;
             
-            // Chart
             const ctx = document.getElementById('viewsChart').getContext('2d');
             const sortedPosts = [...allPosts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10); // Top 10 posts
-            const labels = sortedPosts.map(p => p.title);
+            const labels = sortedPosts.map(p => p.title.length > 30 ? p.title.substring(0, 30) + '...' : p.title);
             const data = sortedPosts.map(p => p.views || 0);
 
-            if (viewsChart) {
-                viewsChart.destroy(); // Destroy old chart before creating new one
-            }
+            if (viewsChart) viewsChart.destroy();
 
             viewsChart = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Lượt xem',
-                        data: data,
-                        backgroundColor: 'rgba(161, 98, 7, 0.2)',
-                        borderColor: 'rgba(161, 98, 7, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true } },
-                    indexAxis: 'y', // Horizontal bar chart
-                    responsive: true,
-                    plugins: { legend: { display: false } }
-                }
+                data: { labels: labels, datasets: [{ label: 'Lượt xem', data: data, backgroundColor: 'rgba(161, 98, 7, 0.2)', borderColor: 'rgba(161, 98, 7, 1)', borderWidth: 1 }] },
+                options: { scales: { y: { beginAtZero: true } }, indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
             });
         }
 
@@ -449,7 +506,8 @@
                         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
                         document.getElementById('publish-date').value = d.toISOString().slice(0,16);
                     }
-                    quill.setContents(JSON.parse(post.contentDelta));
+                    if(post.contentDelta) quill.setContents(JSON.parse(post.contentDelta)); else quill.root.innerHTML = post.content;
+
                     if(post.coverImageUrl) {
                         coverImagePreview.src = post.coverImageUrl;
                         coverImagePreview.classList.remove('hidden');
@@ -473,7 +531,7 @@
 
         function resetFormAndSwitchToManage() {
             postForm.reset();
-            quill.setText('');
+            quill.setContents([]);
             document.getElementById('edit-post-id').value = '';
             coverImagePreview.classList.add('hidden');
             coverImagePreview.src = '';
