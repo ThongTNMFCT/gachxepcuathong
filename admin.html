@@ -1,21 +1,27 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gác xép của Thông</title>
-
-    <meta property="og:title" content="Gác xép của Thông">
-    <meta property="og:description" content="Nơi Thông lưu giữ những mẩu chuyện nhỏ xinh, những suy tư vụn vặt và cả những hành trình đáng nhớ.">
-    <meta property="og:image" content="https://i.ibb.co/7jXgTzD/gacxep-cover-share.png">
-    <meta property="og:type" content="website">
+    <title>Quản trị - Gác xép của Thông</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+    <!-- Quill Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
     <style>
         body {
             font-family: 'Quicksand', sans-serif;
@@ -25,259 +31,474 @@
         .font-handwriting {
             font-family: 'Patrick Hand', cursive;
         }
-        .menu-item.active {
-            position: relative;
+        /* Tùy chỉnh trình soạn thảo Quill */
+        .ql-editor {
+            min-height: 300px;
+            font-size: 1.125rem;
+            line-height: 1.8;
+        }
+        /* Tùy chỉnh thanh tab */
+        .tab-btn {
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            border-color: #a16207;
             color: #a16207;
+            background-color: #fef3c7;
         }
-        .menu-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 10%;
-            right: 10%;
-            height: 2px;
-            background-color: #a16207;
+        /* --- Image Caption Styling --- */
+        .ql-editor .image-container {
+            margin: 1rem auto;
+            text-align: center;
         }
-        .card-shadow {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            transition: all 0.3s ease-in-out;
+        .ql-editor .image-container img {
+            max-width: 100%;
+            border-radius: 0.5rem;
         }
-        .card-shadow:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        .ql-editor .image-container figcaption {
+            display: block;
+            margin-top: 0.5rem;
+            color: #888;
+            font-size: 0.9em;
+            font-style: italic;
+            outline: none;
         }
-        .post-card.scheduled .post-cover-image {
-            filter: grayscale(80%) blur(2px);
-        }
-        .post-card.scheduled .overlay-text {
-            display: flex;
-            flex-direction: column;
+        .ql-editor .image-container figcaption[data-placeholder]:empty::before {
+            content: attr(data-placeholder);
+            color: #aaa;
+            cursor: text;
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-20 shadow-sm border-b border-amber-200">
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm border-b border-amber-200">
         <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
             <a href="index.html" class="font-handwriting text-4xl text-amber-600">Gác xép của Thông</a>
-            
-            <ul class="hidden lg:flex items-center gap-2">
-                <li><a href="index.html" class="menu-item active font-semibold p-2 rounded-md hover:bg-amber-100 transition">Trang chủ</a></li>
-                <li><a href="nhat-ki.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Nhật kí</a></li>
-                <li><a href="bai-viet.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Bài viết</a></li>
-                <li><a href="chuyen-doi-thuong.html" class="menu-item font-semibold p-2 rounded-md hover:bg-amber-100 transition">Chuyện đời thường</a></li>
-            </ul>
-
-            <div id="auth-container" class="hidden lg:flex items-center gap-4 text-sm">
-                </div>
-
-            <div class="lg:hidden">
-                <button id="menu-toggle" class="text-amber-800 hover:text-amber-600 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                </button>
+            <div id="user-info" class="text-right">
+                <!-- User info will be inserted here -->
             </div>
         </nav>
     </header>
 
-    <div id="mobile-menu" class="hidden lg:hidden bg-white/95 backdrop-blur-sm shadow-lg absolute top-20 left-0 w-full z-10">
-        <ul class="flex flex-col items-center gap-4 py-8">
-            <li><a href="index.html" class="menu-item active p-2">Trang chủ</a></li>
-            <li><a href="nhat-ki.html" class="menu-item p-2">Nhật kí</a></li>
-            <li><a href="bai-viet.html" class="menu-item p-2">Bài viết</a></li>
-            <li><a href="chuyen-doi-thuong.html" class="menu-item p-2">Chuyện đời thường</a></li>
-        </ul>
-        <div id="mobile-auth-container" class="border-t border-amber-100 flex flex-col items-center gap-4 py-6">
-             </div>
-    </div>
-
+    <!-- Main Content -->
     <main class="container mx-auto p-6">
-        <div class="text-center my-10 p-8 bg-amber-50/50 border border-amber-200 rounded-xl">
-            <h1 id="dynamic-greeting" class="text-3xl lg:text-4xl font-bold text-amber-900 leading-tight">...</h1>
-            <p id="current-date" class="text-lg mt-2 text-amber-700"></p>
-            <p id="daily-quote" class="text-md mt-4 text-amber-800/80 max-w-2xl mx-auto italic">"...</p>
+        <h1 class="text-4xl font-bold text-amber-900 mb-8">Bảng điều khiển</h1>
+
+        <!-- Tabs Navigation -->
+        <div class="border-b border-gray-200 mb-8">
+            <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                <button id="tab-write" class="tab-btn active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Viết bài mới</button>
+                <button id="tab-manage" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Quản lý bài viết</button>
+                <button id="tab-analytics" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">Phân tích</button>
+            </nav>
         </div>
-        
-        <div id="post-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-            <p id="loading-message" class="text-center col-span-full text-gray-500">Đang tải những câu chuyện mới nhất...</p>
+
+        <!-- Tab Content -->
+        <div>
+            <!-- Write/Edit Post Tab -->
+            <div id="content-write">
+                <form id="post-form" class="space-y-6">
+                    <input type="hidden" id="edit-post-id">
+                    <div>
+                        <label for="post-title" class="block text-lg font-medium text-amber-900">Tiêu đề bài viết</label>
+                        <input type="text" id="post-title" name="post-title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                             <label for="post-category" class="block text-lg font-medium text-amber-900">Chuyên mục</label>
+                            <select id="post-category" name="post-category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3">
+                                <option>Nhật kí</option>
+                                <option>Bài viết</option>
+                                <option>Chuyện đời thường</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="publish-date" class="block text-lg font-medium text-amber-900">Ngày xuất bản</label>
+                            <input type="datetime-local" id="publish-date" name="publish-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3">
+                            <p class="text-sm text-gray-500 mt-1">Để trống để đăng ngay lập tức.</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="cover-image-upload" class="block text-lg font-medium text-amber-900">Ảnh bìa (1200x600)</label>
+                        <input type="file" id="cover-image-upload" accept="image/*" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                        <img id="cover-image-preview" src="" alt="Xem trước ảnh bìa" class="mt-4 rounded-lg hidden max-h-60">
+                    </div>
+
+                    <div>
+                        <label class="block text-lg font-medium text-amber-900">Nội dung</label>
+                        <div id="editor" class="mt-1 bg-white rounded-md"></div>
+                        <p class="text-sm text-gray-500 mt-1">Mẹo: Nhấn nút chèn ảnh trên thanh công cụ để thêm ảnh vào bài viết.</p>
+                    </div>
+
+                    <!-- NEW: Image Insertion Section -->
+                    <div id="image-inserter" class="hidden mt-4 p-4 border border-dashed border-amber-300 rounded-lg space-y-4 bg-amber-50/50">
+                        <h3 class="text-lg font-semibold text-amber-800">Chèn hình ảnh vào bài viết</h3>
+                        <div>
+                            <label for="image-file-input" class="block text-sm font-medium text-gray-700">Chọn tệp ảnh</label>
+                            <input type="file" id="image-file-input" accept="image/*" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white file:text-amber-700 hover:file:bg-amber-100">
+                        </div>
+                        <div>
+                            <label for="image-caption-input" class="block text-sm font-medium text-gray-700">Mô tả ảnh (không bắt buộc)</label>
+                            <input type="text" id="image-caption-input" placeholder="Dòng mô tả ngắn dưới ảnh..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 p-2">
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button type="button" id="insert-image-btn" class="bg-amber-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-amber-700 transition">Chèn vào bài viết</button>
+                            <button type="button" id="cancel-image-btn" class="text-gray-600 hover:text-black font-semibold">Hủy</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="post-excerpt" class="block text-lg font-medium text-amber-900">Đoạn trích ngắn</label>
+                        <textarea id="post-excerpt" name="post-excerpt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-lg p-3"></textarea>
+                    </div>
+
+                    <div class="flex items-center gap-4 pt-4">
+                        <button type="submit" id="submit-btn" class="bg-amber-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-700 transition duration-300 text-lg">Xuất bản bài viết</button>
+                        <button type="button" id="cancel-edit-btn" class="hidden bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 transition duration-300 text-lg">Hủy bỏ</button>
+                        <span id="loading-spinner" class="hidden">
+                            <svg class="animate-spin h-5 w-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </span>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manage Posts Tab -->
+            <div id="content-manage" class="hidden">
+                <div id="manage-post-list" class="space-y-4">
+                    <!-- Post list will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="content-analytics" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-500">Tổng số bài viết</h3>
+                        <p id="total-posts" class="text-4xl font-bold text-amber-800">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-500">Tổng lượt xem</h3>
+                        <p id="total-views" class="text-4xl font-bold text-amber-800">0</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-4">Lượt xem theo bài viết</h3>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <canvas id="viewsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
-
-    <footer class="text-center py-8 mt-12 border-t border-amber-100">
-        <p class="text-amber-800">&copy; 2025, Gác xép của Thông.</p>
-    </footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { firebaseConfig } from './key.js';
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, deleteDoc, serverTimestamp, Timestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { firebaseConfig, IMGBB_API_KEY } from './key.js';
 
         // --- Initialize Firebase ---
-        let db, auth;
+        let db, auth, adminEmail = 'thongtnmfct31178@gmail.com';
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
         } catch (e) {
             console.error("Lỗi khởi tạo Firebase:", e);
-            const postList = document.getElementById('post-list');
-            if(postList) postList.innerHTML = `<p class="text-center col-span-full text-red-500">Lỗi kết nối đến server. Vui lòng thử lại sau.</p>`;
+            alert("Không thể kết nối đến Firebase!");
         }
+        
+        // --- Custom Image Blot with Caption for Quill ---
+        const BlockEmbed = Quill.import('blots/block/embed');
+
+        class FigureImageBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create();
+                node.setAttribute('class', 'image-container');
+                const img = document.createElement('img');
+                img.setAttribute('src', value.src || value);
+                if (value.alt) img.setAttribute('alt', value.alt);
+                const figcaption = document.createElement('figcaption');
+                figcaption.setAttribute('contenteditable', 'true');
+                figcaption.setAttribute('data-placeholder', 'Nhập mô tả ảnh...');
+                if (value.caption) figcaption.innerText = value.caption;
+                node.appendChild(img);
+                node.appendChild(figcaption);
+                return node;
+            }
+            static value(node) {
+                const img = node.querySelector('img');
+                const figcaption = node.querySelector('figcaption');
+                return { src: img.getAttribute('src'), alt: img.getAttribute('alt'), caption: figcaption.innerText || '' };
+            }
+        }
+        FigureImageBlot.blotName = 'figureImage';
+        FigureImageBlot.tagName = 'figure';
+        Quill.register(FigureImageBlot);
+        
+        // --- Quill Editor Setup ---
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: { toolbar: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'strike'], [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'image'], ['clean']] }
+        });
 
         // --- DOM Elements ---
-        const authContainer = document.getElementById('auth-container');
-        const mobileAuthContainer = document.getElementById('mobile-auth-container');
-        const postList = document.getElementById('post-list');
-        const loadingMessage = document.getElementById('loading-message');
-        const menuToggle = document.getElementById('menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
+        const userInfo = document.getElementById('user-info');
+        const postForm = document.getElementById('post-form');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const managePostList = document.getElementById('manage-post-list');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const imageInserter = document.getElementById('image-inserter');
+        const insertImageBtn = document.getElementById('insert-image-btn');
+        const cancelImageBtn = document.getElementById('cancel-image-btn');
+        
+        // --- Tabs Elements ---
+        const tabs = [ { btn: document.getElementById('tab-write'), content: document.getElementById('content-write') }, { btn: document.getElementById('tab-manage'), content: document.getElementById('content-manage') }, { btn: document.getElementById('tab-analytics'), content: document.getElementById('content-analytics') } ];
+        tabs.forEach(tab => {
+            tab.btn.addEventListener('click', () => {
+                tabs.forEach(t => { t.btn.classList.remove('active'); t.content.style.display = 'none'; });
+                tab.btn.classList.add('active');
+                tab.content.style.display = 'block';
+            });
+        });
 
-        // --- Mobile Menu Toggle ---
-        menuToggle.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
+        // --- Auth Check ---
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === adminEmail) {
+                userInfo.innerHTML = `<p class="font-semibold text-amber-800">${user.displayName || user.email}</p><button id="logout-btn" class="text-sm text-gray-500 hover:text-amber-800">Đăng xuất</button>`;
+                document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+            } else { window.location.href = 'index.html'; }
         });
         
-        // --- NEW: Dynamic Welcome Section Logic ---
-        function updateWelcomeSection() {
-            const greetingEl = document.getElementById('dynamic-greeting');
-            const dateEl = document.getElementById('current-date');
-            const quoteEl = document.getElementById('daily-quote');
-            
-            // 1. Time-based Greeting
-            const currentHour = new Date().getHours();
-            if (currentHour < 12) {
-                greetingEl.textContent = 'Chào buổi sáng!';
-            } else if (currentHour < 18) {
-                greetingEl.textContent = 'Một buổi chiều tốt lành nhé!';
-            } else {
-                greetingEl.textContent = 'Buổi tối vui vẻ, bạn hiền!';
-            }
-            
-            // 2. Date Display
-            dateEl.textContent = new Date().toLocaleDateString('vi-VN', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
+        // --- Slugify Function ---
+        function createSlug(title) { return title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-'); }
 
-            // 3. Random Quote
-            const quotes = [
-                "Mỗi ngày đều là một trang mới của cuốn sách cuộc đời.",
-                "Những câu chuyện đẹp nhất thường bắt đầu từ những điều bình dị nhất.",
-                "Hãy cất giữ những kỷ niệm đẹp như cách người ta giữ những món đồ quý giá trên gác xép.",
-                "Cuộc sống luôn có những góc nhỏ an yên, chỉ cần ta chậm lại để tìm kiếm."
-            ];
-            const randomIndex = Math.floor(Math.random() * quotes.length);
-            quoteEl.textContent = `"${quotes[randomIndex]}"`;
+        // --- Image Compression Function ---
+        function compressImage(file, maxWidth = 1000, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let { width, height } = img;
+                        if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() })), 'image/jpeg', quality);
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
         }
 
-        // --- Authentication Listener ---
-        onAuthStateChanged(auth, (user) => {
-            const updateAuthUI = (container) => {
-                container.innerHTML = ''; // Clear old content
-                if (user) {
-                    const displayName = user.displayName || user.email.split('@')[0];
-                    container.innerHTML = `
-                        <span class="font-semibold text-amber-800">Chào, ${displayName}!</span>
-                        <button class="logout-btn text-amber-800 hover:text-amber-600 font-semibold">Đăng xuất</button>
-                    `;
+        // --- Image Upload Function ---
+        async function uploadImageToImgBB(file) {
+            if (!IMGBB_API_KEY || IMGBB_API_KEY === 'DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY') { alert('Vui lòng cung cấp API Key của ImgBB trong file key.js!'); return null; }
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const result = await response.json();
+                return result.success ? result.data.url : null;
+            } catch (error) { console.error('Lỗi tải ảnh lên ImgBB:', error); alert(`Lỗi tải ảnh: ${error.message}`); return null; }
+        }
+        
+        // --- CORRECTED Image Insertion Logic ---
+        let savedRange = null;
+
+        quill.getModule('toolbar').addHandler('image', () => {
+             savedRange = quill.getSelection(true);
+             imageInserter.classList.remove('hidden');
+             imageInserter.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        cancelImageBtn.addEventListener('click', () => {
+            imageInserter.classList.add('hidden');
+            document.getElementById('image-file-input').value = '';
+            document.getElementById('image-caption-input').value = '';
+        });
+
+        insertImageBtn.addEventListener('click', async () => {
+            const fileInput = document.getElementById('image-file-input');
+            const captionInput = document.getElementById('image-caption-input');
+            const file = fileInput.files[0];
+            const caption = captionInput.value.trim();
+
+            if (!file) { alert('Vui lòng chọn một tệp ảnh.'); return; }
+
+            loadingSpinner.classList.remove('hidden');
+            const compressedFile = await compressImage(file);
+            const imageUrl = await uploadImageToImgBB(compressedFile);
+            loadingSpinner.classList.add('hidden');
+            
+            if (imageUrl) {
+                quill.focus(); // Phục hồi focus cho trình soạn thảo
+                const insertIndex = savedRange ? savedRange.index : quill.getLength(); // Xác định vị trí chèn
+                
+                quill.insertEmbed(insertIndex, 'figureImage', { src: imageUrl, caption: caption }, Quill.sources.USER);
+                quill.setSelection(insertIndex + 1, Quill.sources.SILENT); // Di chuyển con trỏ đến sau ảnh
+            }
+            
+            cancelImageBtn.click(); // Ẩn và reset lại ô chèn ảnh
+        });
+
+        // --- Cover Image Preview ---
+        const coverImageUpload = document.getElementById('cover-image-upload');
+        const coverImagePreview = document.getElementById('cover-image-preview');
+        coverImageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (event) => { coverImagePreview.src = event.target.result; coverImagePreview.classList.remove('hidden'); };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- Form Submission (Create and Update) ---
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            const title = document.getElementById('post-title').value;
+            const category = document.getElementById('post-category').value;
+            const excerpt = document.getElementById('post-excerpt').value;
+            const publishDateStr = document.getElementById('publish-date').value;
+            const contentHTML = quill.root.innerHTML;
+            const contentDelta = JSON.stringify(quill.getContents());
+            const coverImageFile = coverImageUpload.files[0];
+            const editPostId = document.getElementById('edit-post-id').value;
+
+            let coverImageUrl = coverImagePreview.src;
+            if (coverImageFile) {
+                const compressedCoverFile = await compressImage(coverImageFile, 1200, 0.85); // Compress cover image
+                coverImageUrl = await uploadImageToImgBB(compressedCoverFile);
+                if (!coverImageUrl) { loadingSpinner.classList.add('hidden'); submitBtn.disabled = false; return; }
+            }
+            
+            const postData = { title, category, excerpt, content: contentHTML, contentDelta, coverImageUrl: coverImageUrl || null, publishAt: publishDateStr ? Timestamp.fromDate(new Date(publishDateStr)) : serverTimestamp(), updatedAt: serverTimestamp() };
+
+            try {
+                if (editPostId) {
+                    await updateDoc(doc(db, 'posts', editPostId), postData);
+                    alert('Cập nhật bài viết thành công!');
+                    resetFormAndSwitchToManage();
                 } else {
-                    container.innerHTML = `
-                        <a href="auth.html" class="bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">Đăng nhập / Đăng ký</a>
-                    `;
+                    postData.createdAt = serverTimestamp();
+                    postData.views = 0; // Initialize views
+                    await setDoc(doc(db, 'posts', createSlug(title)), postData);
+                    alert('Đăng bài viết thành công!');
+                    postForm.reset();
+                    quill.setContents([]);
+                    coverImagePreview.classList.add('hidden');
+                    coverImagePreview.src = '';
                 }
-            };
-            
-            updateAuthUI(authContainer);
-            updateAuthUI(mobileAuthContainer);
-            
-            document.querySelectorAll('.logout-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    signOut(auth).catch(error => console.error('Sign out error', error));
-                });
-            });
-        });
-
-        // --- Fetch and Render Posts ---
-        function fetchAndRenderPosts() {
-            if (!db) return;
-            const q = query(collection(db, "posts"), orderBy('publishAt', 'desc'));
-
-            onSnapshot(q, (snapshot) => {
-                if (loadingMessage) loadingMessage.style.display = 'none';
-                if (snapshot.empty) {
-                    postList.innerHTML = `<p class="text-center col-span-full">Chưa có bài viết nào trên gác xép cả. Hãy chờ đón những câu chuyện sắp tới nhé!</p>`;
-                    return;
-                }
-
-                postList.innerHTML = ''; // Clear previous content
-                snapshot.forEach(doc => {
-                    const post = doc.data();
-                    const postCard = document.createElement('div');
-                    
-                    const now = new Date();
-                    const publishDate = post.publishAt?.toDate();
-                    const isPublished = !publishDate || publishDate <= now;
-
-                    postCard.className = `post-card card-shadow bg-white rounded-2xl flex flex-col overflow-hidden ${!isPublished ? 'scheduled' : ''}`;
-                    
-                    const publishDateLocale = publishDate ? publishDate.toLocaleDateString('vi-VN') : 'Sắp ra mắt';
-                    
-                    const imageUrl = post.coverImageUrl || `https://placehold.co/600x400/fef3c7/a16207?text=Gác+Xép`;
-
-                    let cardContentHTML = '';
-
-                    if (isPublished) {
-                        const createdAtDate = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('vi-VN', {
-                            day: '2-digit', month: '2-digit', year: 'numeric'
-                        }) : publishDateLocale;
-
-                        cardContentHTML = `
-                            <a href="view.html?id=${doc.id}">
-                                <img src="${imageUrl}" alt="${post.title || 'Ảnh bìa'}" class="post-cover-image w-full h-56 object-cover">
-                            </a>
-                            <div class="p-6 flex flex-col flex-grow">
-                                <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-1 rounded-full mb-3 self-start">${post.category || 'Chưa phân loại'}</span>
-                                <h3 class="text-xl font-bold text-amber-900 mb-2">${post.title || 'Tiêu đề trống'}</h3>
-                                <p class="text-xs text-gray-400 mb-4">${createdAtDate}</p>
-                                <p class="text-gray-600 mb-4 flex-grow">${post.excerpt || '...'}</p>
-                                <a href="view.html?id=${doc.id}" class="text-amber-600 font-bold hover:text-amber-800 mt-auto self-start">Đọc tiếp &rarr;</a>
-                            </div>
-                        `;
-                    } else {
-                        cardContentHTML = `
-                            <div class="relative" title="Bài viết sẽ được đăng vào ngày ${publishDateLocale}">
-                                <img src="${imageUrl}" alt="${post.title || 'Ảnh bìa'}" class="post-cover-image w-full h-56 object-cover">
-                                <div class="overlay-text absolute inset-0 bg-black/50 items-center justify-center text-white text-2xl font-bold hidden">
-                                    <span>Sắp ra mắt</span>
-                                    <span class="text-sm block mt-2">${publishDateLocale}</span>
-                                </div>
-                            </div>
-                            <div class="p-6 flex flex-col flex-grow">
-                                <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-1 rounded-full mb-3 self-start">${post.category || 'Chưa phân loại'}</span>
-                                <h3 class="text-xl font-bold text-amber-900 mb-2">${post.title || 'Tiêu đề trống'}</h3>
-                                <p class="text-xs text-gray-400 mb-4">Đã lên lịch</p>
-                                <p class="text-gray-600 mb-4 flex-grow">${post.excerpt || '...'}</p>
-                            </div>
-                        `;
-                    }
-
-                    postCard.innerHTML = cardContentHTML;
-                    postList.appendChild(postCard);
-                });
-            }, (error) => {
-                console.error("Lỗi tải bài viết: ", error);
-                if (loadingMessage) loadingMessage.style.display = 'none';
-                postList.innerHTML = `<p class="text-center col-span-full text-red-500">Không tải được bài viết. Vui lòng thử lại sau.</p>`;
-            });
-        }
-
-        // --- Initial Load ---
-        document.addEventListener('DOMContentLoaded', () => {
-            updateWelcomeSection();
-            if (db) {
-                fetchAndRenderPosts();
+            } catch (error) {
+                console.error("Lỗi khi lưu bài viết: ", error);
+                alert("Đã có lỗi xảy ra, vui lòng thử lại.");
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
             }
         });
+
+        // --- Main Data Listener ---
+        let allPosts = []; let viewsChart = null; 
+
+        function listenToPosts() {
+            const q = query(collection(db, "posts"), orderBy("publishAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                allPosts = [];
+                managePostList.innerHTML = '';
+                if (snapshot.empty) { managePostList.innerHTML = '<p>Chưa có bài viết nào.</p>'; return; }
+                snapshot.forEach(doc => {
+                    const post = { id: doc.id, ...doc.data() };
+                    allPosts.push(post);
+                    renderPostInManager(post);
+                });
+                renderAnalytics();
+            });
+        }
+        
+        function renderPostInManager(post) {
+            const postEl = document.createElement('div');
+            postEl.className = 'flex justify-between items-center bg-white p-4 rounded-lg shadow-sm';
+            const publishDate = post.publishAt?.toDate();
+            const isPublished = !publishDate || publishDate <= new Date();
+            const statusClass = isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+            const statusText = isPublished ? 'Đã xuất bản' : 'Đã lên lịch';
+
+            postEl.innerHTML = `<div><p class="font-bold text-lg">${post.title}</p><div class="text-sm text-gray-500 flex items-center gap-4 mt-1"><span>${post.category}</span><span class="text-xs font-medium px-2.5 py-0.5 rounded ${statusClass}">${statusText}</span><span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>${post.views || 0}</span></div></div><div class="flex gap-2"><button data-id="${post.id}" class="edit-btn bg-blue-100 text-blue-800 hover:bg-blue-200 font-semibold py-1 px-3 rounded-lg text-sm">Sửa</button><button data-id="${post.id}" class="delete-btn bg-red-100 text-red-800 hover:bg-red-200 font-semibold py-1 px-3 rounded-lg text-sm">Xóa</button></div>`;
+            managePostList.appendChild(postEl);
+        }
+        
+        listenToPosts();
+
+        // --- Analytics Rendering ---
+        function renderAnalytics() {
+            document.getElementById('total-posts').textContent = allPosts.length;
+            document.getElementById('total-views').textContent = allPosts.reduce((sum, post) => sum + (post.views || 0), 0);
+            const ctx = document.getElementById('viewsChart').getContext('2d');
+            const sortedPosts = [...allPosts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10);
+            const labels = sortedPosts.map(p => p.title.length > 30 ? p.title.substring(0, 30) + '...' : p.title);
+            const data = sortedPosts.map(p => p.views || 0);
+            if (viewsChart) viewsChart.destroy();
+            viewsChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Lượt xem', data: data, backgroundColor: 'rgba(161, 98, 7, 0.2)', borderColor: 'rgba(161, 98, 7, 1)', borderWidth: 1 }] }, options: { scales: { y: { beginAtZero: true } }, indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } } });
+        }
+
+        // --- Manage Posts Event Listeners (Delete and Edit) ---
+        managePostList.addEventListener('click', async (e) => {
+            const { target } = e; const postId = target.dataset.id; if (!postId) return;
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) {
+                    try { await deleteDoc(doc(db, 'posts', postId)); alert('Đã xóa bài viết.'); } catch (error) { console.error('Lỗi xóa bài viết:', error); alert('Không thể xóa bài viết.'); }
+                }
+            } else if (target.classList.contains('edit-btn')) {
+                const docSnap = await getDoc(doc(db, 'posts', postId));
+                if (docSnap.exists()) {
+                    const post = docSnap.data();
+                    document.getElementById('edit-post-id').value = postId;
+                    document.getElementById('post-title').value = post.title;
+                    document.getElementById('post-category').value = post.category;
+                    document.getElementById('post-excerpt').value = post.excerpt || '';
+                    if (post.publishAt) {
+                        const d = post.publishAt.toDate();
+                        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                        document.getElementById('publish-date').value = d.toISOString().slice(0,16);
+                    }
+                    if(post.contentDelta) quill.setContents(JSON.parse(post.contentDelta)); else quill.root.innerHTML = post.content;
+                    if(post.coverImageUrl) { coverImagePreview.src = post.coverImageUrl; coverImagePreview.classList.remove('hidden'); } else { coverImagePreview.classList.add('hidden'); coverImagePreview.src = ''; }
+                    submitBtn.textContent = 'Cập nhật bài viết';
+                    cancelEditBtn.classList.remove('hidden');
+                    tabs[0].btn.click(); window.scrollTo(0, 0);
+                }
+            }
+        });
+        
+        // --- Cancel Edit Button ---
+        cancelEditBtn.addEventListener('click', () => { resetFormAndSwitchToManage(); });
+
+        function resetFormAndSwitchToManage() {
+            postForm.reset(); quill.setContents([]);
+            document.getElementById('edit-post-id').value = '';
+            coverImagePreview.classList.add('hidden'); coverImagePreview.src = '';
+            submitBtn.textContent = 'Xuất bản bài viết';
+            cancelEditBtn.classList.add('hidden');
+            tabs[1].btn.click();
+        }
 
     </script>
 </body>
 </html>
+
